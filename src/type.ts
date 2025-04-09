@@ -16,7 +16,6 @@ export interface SqliteHeader {
   maxPageSize: number;
   writeVersion: number;
   readVersion: number;
-  reservedSpace2: number;
   pageCount: number;
   firstFreelistPage: number;
   totalFreelistPages: number;

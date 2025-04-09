@@ -16,10 +16,9 @@ export function parseHeader(view: DataView): SqliteHeader {
     fileFormatWriteVersion: view.getUint8(18),
     fileFormatReadVersion: view.getUint8(19),
     reservedSpace: view.getUint8(20),
-    maxPageSize: view.getUint16(21),
+    maxPageSize: view.getUint8(21),
     writeVersion: view.getUint8(23),
     readVersion: view.getUint8(24),
-    reservedSpace2: view.getUint8(25),
     pageCount: view.getUint32(28),
     firstFreelistPage: view.getUint32(32),
     totalFreelistPages: view.getUint32(36),
@@ -55,14 +54,12 @@ function parsePageHeader(buffer: Uint8Array, offset: number): SqlitePageHeader {
 
 function parseVarint(view: DataView, offset: number): [number, number] {
   let value = 0;
-  let shift = 0;
   let byte: number;
   let length = 0;
 
   do {
     byte = view.getUint8(offset + length);
-    value += (byte & 0x7f) << shift;
-    shift += 7;
+    value = (value << 7) + (byte & 0x7f);
     length++;
   } while (byte & 0x80);
 
@@ -168,6 +165,7 @@ export function parseTableLeafPage(
 
     const [size, sizeBytes] = parseVarint(view, cursor);
     cursor += sizeBytes;
+    console.log("size", size);
 
     const [rowid, rowidBytes] = parseVarint(view, cursor);
     cursor += rowidBytes;
@@ -175,12 +173,14 @@ export function parseTableLeafPage(
     let localSize = size;
     let overflow = false;
 
+    // ((U-12)*32/255)-23
+
     if (size > db.maxLocal) {
       localSize = db.minLocal + ((size - db.minLocal) % (db.usableSize - 4));
       overflow = true;
     }
 
-    console.log(localSize, size, sizeBytes, rowidBytes, cursor);
+    console.log({localSize, size, minLocal: db.minLocal, usableSize: db.usableSize, rowidBytes, cursor});
 
     const payload = pageData.subarray(cursor, cursor + localSize);
     cursor += localSize;
@@ -274,7 +274,8 @@ export function parseSqlite(buffer: ArrayBuffer): SqliteDatabase {
   });
 
   const usableSize = header.pageSize - header.reservedSpace;
-  const maxLocal = Math.floor(((usableSize - 12) * 64) / 255 - 23);
+  //const maxLocal = Math.floor(((usableSize - 12) * 64) / 255 - 23);
+  const maxLocal = usableSize - 35;
   const minLocal = Math.floor(((usableSize - 12) * 32) / 255 - 23);
 
   console.log(maxLocal, minLocal, usableSize);

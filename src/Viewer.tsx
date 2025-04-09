@@ -15,6 +15,8 @@ export default function Viewer({ buffer }: ViewerProps) {
     return parseSqlite(buffer);
   }, [buffer]);
 
+  console.log("db", db)
+
   useEffect(() => {
     const handler = () => {
       const hash = window.location.hash.substring(1);
