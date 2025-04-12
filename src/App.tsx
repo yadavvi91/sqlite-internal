@@ -5,8 +5,6 @@ function App() {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  console.log(fileBuffer);
-
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {

@@ -78,7 +78,8 @@ export function PageTableLeaf({
               hex={cell.content}
             >
               <strong>Rowid: </strong>
-              {cell.rowid} | <strong>Payload Size: </strong> {cell.size}
+              {cell.rowid} | <strong>Payload Size: </strong> {cell.size} |
+              Overflow: {cell.overflowPageNumber}
             </HexTableRow>
           );
         })}

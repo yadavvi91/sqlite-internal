@@ -1,23 +1,23 @@
-import { SqliteDatabase } from "./type";
+import { TableLeafCanvas } from "./components/table-leaf";
+import { Database, TableLeafPage } from "./type";
 
-export function PageList({ db }: { db: SqliteDatabase }) {
-  return (
-    <div className="flex flex-wrap gap-4 p-4">
-      {db.pages.map((page, index) => {
-        return (
-          <div
-            onClick={() => {
-              window.location.hash = `page${page.pageNumber}`;
-            }}
-            key={index}
-            className="border p-4 rounded w-[200px] hover:bg-gray-100 cursor-pointer text-sm"
-          >
-            <h3 className="font-bold text-2xl">{page.pageNumber}</h3>
-            <p>{page.pageTypeName}</p>
-            <p>{page.pageData.length} bytes</p>
-          </div>
-        );
-      })}
-    </div>
-  );
+export function PageList({ db }: { db: Database }) {
+  return <TableLeafCanvas page={db.pages[1] as TableLeafPage} db={db} />;
+
+  // return (
+  //   <div className="flex flex-wrap gap-4 p-4">
+  //     {db.pages.map((page, index) => {
+  //       return (
+  //         <div
+  //           key={index}
+  //           className="border p-4 rounded w-[200px] hover:bg-gray-100 cursor-pointer text-sm"
+  //         >
+  //           <h3 className="font-bold text-2xl">{page.number}</h3>
+  //           <p>{page.type}</p>
+  //           <p>{db.header.pageSize} bytes</p>
+  //         </div>
+  //       );
+  //     })}
+  //   </div>
+  // );
 }

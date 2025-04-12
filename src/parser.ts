@@ -173,25 +173,20 @@ export function parseTableLeafPage(
     let localSize = size;
     let overflow = false;
 
-    // ((U-12)*32/255)-23
-
     if (size > db.maxLocal) {
       localSize = db.minLocal + ((size - db.minLocal) % (db.usableSize - 4));
       overflow = true;
     }
-
-    console.log({localSize, size, minLocal: db.minLocal, usableSize: db.usableSize, rowidBytes, cursor});
 
     const payload = pageData.subarray(cursor, cursor + localSize);
     cursor += localSize;
 
     let overflowPageNumber = 0;
 
-    // if (overflow) {
-    //   console.log("Overflow detected", size, localSize, cursor);
-    //   overflowPageNumber = view.getUint32(cursor);
-    //   cursor += 4;
-    // }
+    if (overflow) {
+      overflowPageNumber = view.getUint32(cursor);
+      cursor += 4;
+    }
 
     cells[i] = {
       rowid,
