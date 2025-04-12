@@ -1,13 +1,3 @@
-export interface SqliteDatabase {
-  header: SqliteHeader;
-  pages: SqlitePage[];
-
-  // This will be used if payload will be overflowed to another page.
-  usableSize: number;
-  maxLocal: number;
-  minLocal: number;
-}
-
 export interface Database {
   header: DatabaseHeader;
   pages: DatabaseParsedPage[];
@@ -123,23 +113,6 @@ export type DatabaseParsedPage =
   | OverflowPage
   | UnknownPage;
 
-export interface SqliteHeader {
-  pageSize: number;
-  fileFormatWriteVersion: number;
-  fileFormatReadVersion: number;
-  reservedSpace: number;
-  maxPageSize: number;
-  writeVersion: number;
-  readVersion: number;
-  pageCount: number;
-  firstFreelistPage: number;
-  totalFreelistPages: number;
-  schemaCookie: number;
-  schemaFormatNumber: number;
-  schemaChangeCounter: number;
-  fileChangeCounter: number;
-}
-
 export interface SqlitePageHeader {
   pageType: number;
   firstFreeblockOffset: number;
@@ -156,36 +129,12 @@ export interface SqliteCellPointer {
   value: number;
 }
 
-export interface SqliteUnallocatedSpace {
-  content: ArrayBuffer;
-  offset: number;
-  length: number;
-}
-
-export interface SqlitePage {
-  header: SqlitePageHeader;
-  pageType: number;
-  pageTypeName: string;
-  pageNumber: number;
-  pageData: Uint8Array;
-
-  // This is the offset of the page header in the page data.
-  // It is always 100 for the first page and 0 for all other pages.
-  headerOffset: number;
-}
-
 export interface SqliteTableInteriorCell {
   pageNumber: number;
   rowid: number;
   content: ArrayBuffer;
   length: number;
   offset: number;
-}
-
-export interface SqliteTableInteriorPage extends SqlitePage {
-  cellPointerArray: SqliteCellPointer[];
-  cells: SqliteTableInteriorCell[];
-  unallocatedSpace: SqliteUnallocatedSpace;
 }
 
 export interface SqliteTableLeafCell {
@@ -198,8 +147,61 @@ export interface SqliteTableLeafCell {
   offset: number;
 }
 
-export interface SqliteTableLeafPage extends SqlitePage {
-  cellPointerArray: SqliteCellPointer[];
-  cells: SqliteTableLeafCell[];
-  unallocatedSpace: SqliteUnallocatedSpace;
-}
+export type InfoType =
+  | {
+      type: "started";
+    }
+  | {
+      type: "database" | "database-header";
+      database: Database;
+    }
+  | {
+      type: "page";
+      database: Database;
+      page: DatabaseParsedPage;
+    }
+  | {
+      type: "btree-page-header";
+      page: DatabaseParsedPage;
+    }
+  | {
+      type: "btree-cell-pointer";
+      page: DatabaseParsedPage;
+      cellPointer: SqliteCellPointer;
+    }
+  | {
+      type: "table-leaf-cell";
+      page: TableLeafPage;
+      cell: SqliteTableLeafCell;
+    }
+  | {
+      type: "table-interior-cell";
+      page: TableInteriorPage;
+      cell: SqliteTableInteriorCell;
+    }
+  | {
+      type: "index-leaf-cell";
+      page: IndexLeafPage;
+      cell: IndexLeafCell;
+    }
+  | {
+      type: "index-interior-cell";
+      page: IndexInteriorPage;
+      cell: IndexInteriorCell;
+    }
+  | {
+      type: "free-trunk-page";
+      page: FreeTrunkPage;
+    }
+  | {
+      type: "free-leaf-page";
+      page: FreeLeafPage;
+    }
+  | {
+      type: "overflow-page";
+      page: OverflowPage;
+    }
+  | {
+      type: "unknown-page";
+      page: UnknownPage;
+    };

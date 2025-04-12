@@ -2,7 +2,7 @@ import { TableLeafCanvas } from "./components/table-leaf";
 import { Database, TableLeafPage } from "./type";
 
 export function PageList({ db }: { db: Database }) {
-  return <TableLeafCanvas page={db.pages[1] as TableLeafPage} db={db} />;
+  return <TableLeafCanvas page={db.pages[0] as TableLeafPage} db={db} />;
 
   // return (
   //   <div className="flex flex-wrap gap-4 p-4">

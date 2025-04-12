@@ -1,12 +1,14 @@
 import { createContext, PropsWithChildren, useContext, useMemo } from "react";
 import { cn } from "./utils";
+import { InfoType } from "../type";
+import { useInfoContext } from "./info";
 
 interface PageCanvasProps {
   x: number;
   size: number;
 }
 
-const CELL_SIZE = 20;
+const CELL_SIZE = 22;
 
 const PageCanvasContext = createContext<PageCanvasProps>({ x: 0, size: 0 });
 
@@ -34,6 +36,7 @@ interface PageCanvasSegment {
   length: number;
   colorClassName?: string;
   label?: string;
+  info?: InfoType;
 }
 
 export function PageCanvasSegment({
@@ -41,7 +44,9 @@ export function PageCanvasSegment({
   length,
   colorClassName,
   label,
+  info,
 }: PageCanvasSegment) {
+  const { setInfo } = useInfoContext();
   const { x } = useContext(PageCanvasContext);
 
   // Break it into chunk
@@ -71,7 +76,9 @@ export function PageCanvasSegment({
     <>
       {chunks.map((chunk, idx) => (
         <div
+          title={`Offset: ${offset}\nLength: ${length}`}
           key={chunk.offset}
+          onClick={info ? () => setInfo(info) : undefined}
           className={cn(
             "absolute bg-gray-300 border-gray-500 border-t border-b cursor-pointer text-xs line-clamp-1 overflow-hidden",
             {

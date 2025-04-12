@@ -124,3 +124,12 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.table td,
+.table th {
+  @apply p-1.5 border;
+}
+
+.table th {
+  @apply bg-gray-100 text-left;
+}

@@ -6,13 +6,13 @@ import {
   DatabaseParsedPage,
   DatabaseUnparsedPage,
   SqliteCellPointer,
-} from "./type";
-import { parseIndexInteriorPage } from "./parser/index-interior";
-import { parseIndexLeafPage } from "./parser/index-leaf";
-import { parseTableLeafPage } from "./parser/table-leaf";
-import { parseTableInteriorPage } from "./parser/table-interior";
-import { walkThroughFreeList } from "./parser/freelist";
-import { walkThroughOverflowPage } from "./parser/overflow";
+} from "../type";
+import { parseIndexInteriorPage } from "./index-interior";
+import { parseIndexLeafPage } from "./index-leaf";
+import { parseTableLeafPage } from "./table-leaf";
+import { parseTableInteriorPage } from "./table-interior";
+import { walkThroughFreeList } from "./freelist";
+import { walkThroughOverflowPage } from "./overflow";
 
 export function parseDatabaseHeader(buffer: ArrayBuffer): DatabaseHeader {
   const view = new DataView(buffer, 0, 100);
