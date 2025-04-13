@@ -18,7 +18,7 @@ export function PageCanvas({
 }: PropsWithChildren<PageCanvasProps>) {
   return (
     <div
-      className="relative"
+      className="relative bg-[radial-gradient(#aaa_1px,transparent_1px)] [background-size:22px_22px]"
       style={{
         width: props.x * CELL_SIZE + "px",
         height: Math.ceil(props.size / props.x) * CELL_SIZE + "px",
@@ -93,15 +93,14 @@ export function PageCanvasSegment({
       {chunks.map((chunk, idx) => (
         <div
           title={`Offset: ${offset}\nLength: ${length}`}
-          key={chunk.offset}
+          key={idx}
           onClick={info ? () => setInfo(info) : undefined}
           className={cn(
             "absolute bg-gray-300 border-gray-500 border-t border-b cursor-pointer text-xs line-clamp-1 overflow-hidden",
             {
               "border-l": idx === 0,
               "border-r": idx === chunks.length - 1,
-              "bg-[radial-gradient(#999_1px,transparent_1px)] [background-size:20px_20px]":
-                selected,
+              "diag-pattern": selected,
             },
             colorClassName
           )}

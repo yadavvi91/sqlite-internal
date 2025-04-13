@@ -93,39 +93,39 @@ export function DatabaseHeaderInfo({
           </tr>
           <tr>
             <td>Page Cache Size</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>Largest Root b-tree Page</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>Text Encoding</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>User Version</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>Incremental Vacuum</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>Application ID</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>Reserved</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>Version Valid for</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
           <tr>
             <td>SQLite Version Number</td>
-            <td>xxx</td>
+            <td></td>
           </tr>
         </tbody>
       </table>
