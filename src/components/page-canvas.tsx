@@ -46,8 +46,24 @@ export function PageCanvasSegment({
   label,
   info,
 }: PageCanvasSegment) {
-  const { setInfo } = useInfoContext();
+  const { info: currentInfo, setInfo } = useInfoContext();
   const { x } = useContext(PageCanvasContext);
+
+  const selected = useMemo(() => {
+    if (!info) return false;
+    if (info.type !== currentInfo.type) return false;
+
+    if (info.type === "database-header") return true;
+
+    if (
+      info.type === "btree-page-header" &&
+      currentInfo.type === "btree-page-header" &&
+      currentInfo.page.number === info.page.number
+    )
+      return true;
+
+    return false;
+  }, [info, currentInfo]);
 
   // Break it into chunk
   const chunks = useMemo(() => {
@@ -84,6 +100,8 @@ export function PageCanvasSegment({
             {
               "border-l": idx === 0,
               "border-r": idx === chunks.length - 1,
+              "bg-[radial-gradient(#999_1px,transparent_1px)] [background-size:20px_20px]":
+                selected,
             },
             colorClassName
           )}
