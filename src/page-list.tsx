@@ -29,7 +29,9 @@ export function PageList({ db }: { db: Database }) {
   if (selectedPage) {
     if (
       selectedPage.type === "Table Leaf" ||
-      selectedPage.type === "Table Interior"
+      selectedPage.type === "Table Interior" ||
+      selectedPage.type === "Index Leaf" ||
+      selectedPage.type === "Index Interior"
     ) {
       return <TableLeafCanvas page={selectedPage} db={db} />;
     } else if (selectedPage.type === "Overflow") {

@@ -1,5 +1,8 @@
 import {
   Database,
+  IndexInteriorPage,
+  IndexLeafPage,
+  InfoType,
   SqliteTableInteriorCell,
   SqliteTableLeafCell,
   TableInteriorPage,
@@ -10,7 +13,7 @@ import { PageCanvas, PageCanvasSegment } from "./page-canvas";
 import { PageCanvasContainer, PageHeader } from "./page-header";
 
 interface TableLeafCanvasProps {
-  page: TableLeafPage | TableInteriorPage;
+  page: TableLeafPage | TableInteriorPage | IndexInteriorPage | IndexLeafPage;
   db: Database;
 }
 
@@ -67,6 +70,22 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
             const cellOffset = cell.offset;
             const cellLength = cell.length;
 
+            let info: InfoType | undefined = undefined;
+
+            if (page.type === "Table Leaf") {
+              info = {
+                type: "table-leaf-cell",
+                page,
+                cell: cell as SqliteTableLeafCell,
+              };
+            } else if (page.type === "Table Interior") {
+              info = {
+                type: "table-interior-cell",
+                page,
+                cell: cell as SqliteTableInteriorCell,
+              };
+            }
+
             return (
               <PageCanvasSegment
                 key={index}
@@ -74,23 +93,11 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 length={cellLength}
                 colorClassName="bg-red-300"
                 label={
-                  page.type === "Table Interior"
-                    ? `Cell`
-                    : `Rowid: ${cell.rowid}`
+                  page.type === "Table Leaf"
+                    ? `Rowid: ${(cell as SqliteTableLeafCell).rowid}`
+                    : `Cell`
                 }
-                info={
-                  page.type === "Table Interior"
-                    ? {
-                        type: "table-interior-cell",
-                        page,
-                        cell: cell as SqliteTableInteriorCell,
-                      }
-                    : {
-                        type: "table-leaf-cell",
-                        page,
-                        cell: cell as SqliteTableLeafCell,
-                      }
-                }
+                info={info}
               />
             );
           })}
