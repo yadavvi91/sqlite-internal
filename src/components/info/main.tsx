@@ -1,7 +1,8 @@
 import { DatabaseBTreePage } from "../../type";
-import { useInfoContext } from "../info";
+import { useInfoContext } from "../info-context";
 import { BPageHeaderInfo } from "./bpage-header";
 import { DatabaseHeaderInfo } from "./database-header";
+import { TableInteriorCellInfo } from "./table-interior-cell";
 import { TableLeafCellInfo } from "./table-leaf-cell";
 
 export function InfoSidebar() {
@@ -18,6 +19,8 @@ export function InfoSidebar() {
     return <BPageHeaderInfo page={info.page as DatabaseBTreePage} />;
   } else if (info.type === "table-leaf-cell") {
     return <TableLeafCellInfo cell={info.cell} />;
+  } else if (info.type === "table-interior-cell") {
+    return <TableInteriorCellInfo cell={info.cell} />;
   }
 
   return <div>Some Unknown</div>;

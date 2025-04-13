@@ -1,21 +1,7 @@
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { PropsWithChildren, useState } from "react";
 import { InfoType } from "../type";
 import { InfoSidebar } from "./info/main";
-
-const InfoContext = createContext<{
-  info: InfoType;
-  setInfo: (info: InfoType) => void;
-}>({
-  info: { type: "started" },
-  setInfo: () => {
-    throw new Error("setInfo not implemented");
-  },
-});
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useInfoContext() {
-  return useContext(InfoContext);
-}
+import { InfoContext } from "./info-context";
 
 export function InfoProvider({ children }: PropsWithChildren) {
   const [info, setInfo] = useState<InfoType>({
@@ -34,4 +20,16 @@ export function InfoProvider({ children }: PropsWithChildren) {
       </div>
     </InfoContext.Provider>
   );
+}
+
+export function InfoContent({ children }: PropsWithChildren) {
+  return (
+    <div className="font-sans  max-w-[350px] flex flex-col gap-4">
+      {children}
+    </div>
+  );
+}
+
+export function InfoHeader({ children }: PropsWithChildren) {
+  return <h1 className="text-lg font-bold">{children}</h1>;
 }

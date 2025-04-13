@@ -1,7 +1,7 @@
 import { createContext, PropsWithChildren, useContext, useMemo } from "react";
 import { cn } from "./utils";
 import { InfoType } from "../type";
-import { useInfoContext } from "./info";
+import { useInfoContext } from "./info-context";
 
 interface PageCanvasProps {
   x: number;
