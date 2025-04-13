@@ -2,6 +2,7 @@ import { useState } from "react";
 import Viewer from "./Viewer";
 import FileDropZone from "./components/file-drop-zone";
 import { InfoProvider } from "./components/info";
+import LoadSampleDatabase from "./components/load-sample-database";
 
 function App() {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
@@ -11,11 +12,12 @@ function App() {
       {fileBuffer ? (
         <Viewer buffer={fileBuffer} />
       ) : (
-        <FileDropZone onFileLoad={setFileBuffer}>
-          <h2 style={{ color: "#0078d7", marginTop: 0 }}>
-            SQLite Database Viewer
-          </h2>
-        </FileDropZone>
+        <div className="flex flex-col items-center justify-center min-h-screen p-5 gap-4">
+          <LoadSampleDatabase onFileLoad={setFileBuffer} />
+          <FileDropZone onFileLoad={setFileBuffer}>
+            <h2 className="mt-0 text-blue-600">SQLite Database Viewer</h2>
+          </FileDropZone>
+        </div>
       )}
     </InfoProvider>
   );

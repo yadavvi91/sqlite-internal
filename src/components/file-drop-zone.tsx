@@ -71,7 +71,7 @@ function FileDropZone({ onFileLoad, children, className }: FileDropZoneProps) {
       // Removed redundant event handlers from this div
     >
       <div
-        className={`flex flex-col items-center justify-center p-10 rounded-lg text-center max-w-md w-full transition-all duration-300 border border-black bg-white`}
+        className={`flex flex-col items-center justify-center p-10 rounded text-center max-w-md w-full transition-all duration-300 border border-black bg-white`}
       >
         {children}
 

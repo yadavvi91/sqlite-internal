@@ -125,6 +125,34 @@ body {
   }
 }
 
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.loading-dots span {
+  display: inline-block;
+  font-size: 20px;
+  font-weight: bold;
+}
+
 .table td,
 .table th {
   @apply p-1.5 border;
