@@ -1,6 +1,7 @@
 import { DatabaseBTreePage } from "../../type";
 import { useInfoContext } from "../info-context";
 import { BPageHeaderInfo } from "./bpage-header";
+import { CellPointerInfo } from "./cell-pointer";
 import { DatabaseHeaderInfo } from "./database-header";
 import { TableInteriorCellInfo } from "./table-interior-cell";
 import { TableLeafCellInfo } from "./table-leaf-cell";
@@ -21,6 +22,8 @@ export function InfoSidebar() {
     return <TableLeafCellInfo cell={info.cell} />;
   } else if (info.type === "table-interior-cell") {
     return <TableInteriorCellInfo cell={info.cell} />;
+  } else if (info.type === "btree-cell-pointer") {
+    return <CellPointerInfo pointer={info.cellPointer} />;
   }
 
   return <div>Some Unknown</div>;

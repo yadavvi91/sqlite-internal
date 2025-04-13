@@ -37,6 +37,7 @@ interface PageCanvasSegment {
   colorClassName?: string;
   label?: string;
   info?: InfoType;
+  pointToOffset?: number;
 }
 
 export function PageCanvasSegment({
@@ -45,9 +46,10 @@ export function PageCanvasSegment({
   colorClassName,
   label,
   info,
+  pointToOffset,
 }: PageCanvasSegment) {
   const { info: currentInfo, setInfo } = useInfoContext();
-  const { x } = useContext(PageCanvasContext);
+  const { x, size } = useContext(PageCanvasContext);
 
   const selected = useMemo(() => {
     if (!info) return false;
@@ -66,6 +68,13 @@ export function PageCanvasSegment({
       info.type === "table-leaf-cell" &&
       currentInfo.type === "table-leaf-cell" &&
       currentInfo.cell === info.cell
+    )
+      return true;
+
+    if (
+      info.type === "btree-cell-pointer" &&
+      currentInfo.type === "btree-cell-pointer" &&
+      info.cellPointer === currentInfo.cellPointer
     )
       return true;
 
@@ -103,7 +112,7 @@ export function PageCanvasSegment({
           key={idx}
           onClick={info ? () => setInfo(info) : undefined}
           className={cn(
-            "absolute bg-gray-300 border-gray-500 border-t border-b cursor-pointer text-xs line-clamp-1 overflow-hidden",
+            "absolute z-2 bg-gray-300 border-gray-500 border-t border-b cursor-pointer text-xs line-clamp-1 overflow-hidden",
             {
               "border-l": idx === 0,
               "border-r": idx === chunks.length - 1,
@@ -123,6 +132,43 @@ export function PageCanvasSegment({
           )}
         </div>
       ))}
+
+      {selected && pointToOffset && (
+        <svg
+          className="absolute top-0 left-0 z-3 pointer-events-none"
+          style={{
+            width: x * CELL_SIZE + "px",
+            height: Math.ceil(size / x) * CELL_SIZE + "px",
+          }}
+          width={x * CELL_SIZE}
+          height={Math.ceil(size / x) * CELL_SIZE}
+        >
+          <defs>
+            <marker
+              id="arrow"
+              viewBox="0 0 10 10"
+              refX="5"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+          </defs>
+
+          <line
+            x1={(chunks[0].offset + chunks[0].length / 2) * CELL_SIZE}
+            y1={(line + 1) * CELL_SIZE}
+            x2={Math.floor(1 + (pointToOffset % x)) * CELL_SIZE}
+            y2={Math.floor(pointToOffset / x) * CELL_SIZE}
+            stroke="black"
+            marker-end="url(#arrow)"
+            strokeDasharray={"4"}
+            strokeWidth="3"
+          />
+        </svg>
+      )}
     </>
   );
 }

@@ -58,7 +58,9 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 key={index}
                 offset={cellOffset}
                 length={cellLength}
+                info={{ type: "btree-cell-pointer", page, cellPointer: cell }}
                 colorClassName="bg-yellow-300"
+                pointToOffset={cell.value}
               />
             );
           })}
