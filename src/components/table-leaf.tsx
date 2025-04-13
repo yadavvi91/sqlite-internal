@@ -1,3 +1,4 @@
+import { LucideChevronLeft } from "lucide-react";
 import {
   Database,
   SqliteTableInteriorCell,
@@ -18,12 +19,15 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
 
   return (
     <div>
-      <div className="mb-2">
-        <div className="font-bold">
+      <div className="sticky top-0 bg-white z-10 p-2 border-b mb-2">
+        <div className="font-bold flex gap-2 items-center">
+          <a href="#">
+            <LucideChevronLeft className="inline-block" />
+          </a>
           Page {page.number} | {page.type}
         </div>
       </div>
-      <div className="p-2 bg-white border border-black rounded inline-block">
+      <div className="m-2 p-2 bg-white border border-black rounded inline-block">
         <PageCanvas size={db.header.pageSize} x={32}>
           {page.number === 1 && (
             <PageCanvasSegment

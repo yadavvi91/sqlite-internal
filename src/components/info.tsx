@@ -11,7 +11,7 @@ export function InfoProvider({ children }: PropsWithChildren) {
   return (
     <InfoContext.Provider value={{ info, setInfo }}>
       <div className="h-screen flex">
-        <div className="p-2 w-[850px] h-screen overflow-auto bg-gray-100">
+        <div className="w-[850px] h-screen overflow-auto bg-gray-100">
           {children}
         </div>
         <div className="border-l p-4 grow-1 h-screen overflow-y-auto text-sm">
