@@ -78,7 +78,6 @@ function FileDropZone({ onFileLoad, children, className }: FileDropZoneProps) {
         <p className="text-base text-gray-700 mb-2.5">
           Drop your SQLite database file here
         </p>
-        <p className="text-sm text-gray-500 mb-5">or</p>
 
         <div className="relative mt-5 overflow-hidden inline-block">
           <button className="inline-block px-5 py-2.5 bg-gray-900 text-white font-bold rounded cursor-pointer text-base transition-colors hover:bg-blue-700">

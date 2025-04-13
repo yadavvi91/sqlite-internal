@@ -6,10 +6,6 @@ import { InfoProvider } from "./components/info";
 function App() {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
 
-  if (fileBuffer) {
-    return <Viewer buffer={fileBuffer} />;
-  }
-
   return (
     <InfoProvider>
       {fileBuffer ? (

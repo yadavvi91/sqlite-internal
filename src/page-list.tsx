@@ -48,7 +48,7 @@ export function PageList({ db }: { db: Database }) {
           <a
             href={`#page=${page.number}`}
             key={index}
-            className="bg-white border p-4 rounded w-[180px] hover:bg-gray-100 cursor-pointer text-sm"
+            className="bg-white border p-4 rounded w-[180px] hover:border-black cursor-pointer text-sm"
           >
             <h3 className="font-bold text-2xl">{page.number}</h3>
             <p>{page.type}</p>

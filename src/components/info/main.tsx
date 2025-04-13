@@ -3,6 +3,7 @@ import { useInfoContext } from "../info-context";
 import { BPageHeaderInfo } from "./bpage-header";
 import { CellPointerInfo } from "./cell-pointer";
 import { DatabaseHeaderInfo } from "./database-header";
+import { StartedInfo } from "./starter";
 import { TableInteriorCellInfo } from "./table-interior-cell";
 import { TableLeafCellInfo } from "./table-leaf-cell";
 
@@ -26,5 +27,5 @@ export function InfoSidebar() {
     return <CellPointerInfo pointer={info.cellPointer} />;
   }
 
-  return <div>Some Unknown</div>;
+  return <StartedInfo />;
 }

@@ -14,7 +14,7 @@ export function InfoProvider({ children }: PropsWithChildren) {
         <div className="w-[850px] h-screen overflow-auto bg-gray-100">
           {children}
         </div>
-        <div className="border-l p-4 grow-1 h-screen overflow-y-auto text-sm">
+        <div className="border-l border-gray-400 p-4 grow-1 h-screen overflow-y-auto text-sm">
           <InfoSidebar />
         </div>
       </div>
