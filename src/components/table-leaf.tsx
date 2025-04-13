@@ -1,18 +1,27 @@
-import { Database, TableLeafPage } from "../type";
+import {
+  Database,
+  SqliteTableInteriorCell,
+  SqliteTableLeafCell,
+  TableInteriorPage,
+  TableLeafPage,
+} from "../type";
 import { PageCanvas, PageCanvasSegment } from "./page-canvas";
 
 interface TableLeafCanvasProps {
-  page: TableLeafPage;
+  page: TableLeafPage | TableInteriorPage;
   db: Database;
 }
 
 export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
   const headerOffset = page.number === 1 ? 100 : 0;
+  const headerSize = page.type === "Table Leaf" ? 8 : 12;
 
   return (
     <div>
       <div className="mb-2">
-        <div className="font-bold">Page 1 | Table Interior</div>
+        <div className="font-bold">
+          Page {page.number} | {page.type}
+        </div>
       </div>
       <div className="p-2 bg-white border border-black rounded inline-block">
         <PageCanvas size={db.header.pageSize} x={32}>
@@ -31,7 +40,7 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
 
           <PageCanvasSegment
             offset={headerOffset}
-            length={12}
+            length={headerSize}
             colorClassName="bg-green-300"
             label="Page header"
             info={{
@@ -50,7 +59,6 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 offset={cellOffset}
                 length={cellLength}
                 colorClassName="bg-yellow-300"
-                label={`•`}
               />
             );
           })}
@@ -65,7 +73,24 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 offset={cellOffset}
                 length={cellLength}
                 colorClassName="bg-red-300"
-                label={`Cell`}
+                label={
+                  page.type === "Table Interior"
+                    ? `Cell`
+                    : `Rowid: ${cell.rowid}`
+                }
+                info={
+                  page.type === "Table Interior"
+                    ? {
+                        type: "table-interior-cell",
+                        page,
+                        cell: cell as SqliteTableInteriorCell,
+                      }
+                    : {
+                        type: "table-leaf-cell",
+                        page,
+                        cell: cell as SqliteTableLeafCell,
+                      }
+                }
               />
             );
           })}

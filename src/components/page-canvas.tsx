@@ -62,6 +62,13 @@ export function PageCanvasSegment({
     )
       return true;
 
+    if (
+      info.type === "table-leaf-cell" &&
+      currentInfo.type === "table-leaf-cell" &&
+      currentInfo.cell === info.cell
+    )
+      return true;
+
     return false;
   }, [info, currentInfo]);
 
