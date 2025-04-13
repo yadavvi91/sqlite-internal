@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TableLeafCanvas } from "./components/table-leaf";
 import { Database, DatabaseParsedPage } from "./type";
+import { OverflowCanvas } from "./components/overflow-canvas";
 
 export function PageList({ db }: { db: Database }) {
   const [selectedPage, setSelectedPage] = useState<DatabaseParsedPage | null>(
@@ -31,6 +32,8 @@ export function PageList({ db }: { db: Database }) {
       selectedPage.type === "Table Interior"
     ) {
       return <TableLeafCanvas page={selectedPage} db={db} />;
+    } else if (selectedPage.type === "Overflow") {
+      return <OverflowCanvas page={selectedPage} db={db} />;
     }
 
     return <div>Some unknown page</div>;

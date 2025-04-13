@@ -1,4 +1,3 @@
-import { LucideChevronLeft } from "lucide-react";
 import {
   Database,
   SqliteTableInteriorCell,
@@ -6,7 +5,9 @@ import {
   TableInteriorPage,
   TableLeafPage,
 } from "../type";
+import { CANVAS_GRID_X_SIZE } from "./consts";
 import { PageCanvas, PageCanvasSegment } from "./page-canvas";
+import { PageCanvasContainer, PageHeader } from "./page-header";
 
 interface TableLeafCanvasProps {
   page: TableLeafPage | TableInteriorPage;
@@ -18,17 +19,10 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
   const headerSize = page.type === "Table Leaf" ? 8 : 12;
 
   return (
-    <div>
-      <div className="sticky top-0 bg-white z-10 p-2 border-b mb-2">
-        <div className="font-bold flex gap-2 items-center">
-          <a href="#">
-            <LucideChevronLeft className="inline-block" />
-          </a>
-          Page {page.number} | {page.type}
-        </div>
-      </div>
-      <div className="m-2 p-2 bg-white border border-black rounded inline-block">
-        <PageCanvas size={db.header.pageSize} x={32}>
+    <>
+      <PageHeader page={page} />
+      <PageCanvasContainer>
+        <PageCanvas size={db.header.pageSize} x={CANVAS_GRID_X_SIZE}>
           {page.number === 1 && (
             <PageCanvasSegment
               offset={0}
@@ -101,7 +95,7 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
             );
           })}
         </PageCanvas>
-      </div>
-    </div>
+      </PageCanvasContainer>
+    </>
   );
 }

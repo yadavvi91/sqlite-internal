@@ -164,8 +164,6 @@ export function parseDatabase(buffer: ArrayBuffer): Database {
 
   // Parse all b-tree pages
   pages = pages.map((page) => parsePage(page, header));
-
-  // The rest of unknown pages are overflow page
   pages = walkThroughOverflowPage(pages);
 
   return {

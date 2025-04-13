@@ -94,9 +94,15 @@ export interface FreeLeafPage extends DatabaseUnparsedPage {
   type: "Free Leaf";
 }
 
+export interface OverflowPayload {
+  offset: number;
+  length: number;
+  content: ArrayBuffer;
+}
 export interface OverflowPage extends DatabaseUnparsedPage {
   type: "Overflow";
   nextPage: number;
+  payload: OverflowPayload;
 }
 
 export interface UnknownPage extends DatabaseUnparsedPage {

@@ -16,6 +16,11 @@ function parseOverflowPage(page: DatabaseParsedPage): OverflowPage {
   return {
     ...page,
     type: "Overflow",
+    payload: {
+      offset: 4,
+      length: data.byteLength - 4,
+      content: data.slice(4),
+    },
     nextPage,
   };
 }
