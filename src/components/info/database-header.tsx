@@ -1,15 +1,23 @@
-import { DatabaseHeader } from "../../type";
+import { DatabaseHeader, DatabaseParsedPage } from "../../type";
+import { HexViewer } from "../hex-viewer";
 
-export function DatabaseHeaderInfo({ header }: { header: DatabaseHeader }) {
+export function DatabaseHeaderInfo({
+  header,
+  page,
+}: {
+  header: DatabaseHeader;
+  page: DatabaseParsedPage;
+}) {
   return (
     <div className="font-sans max-w-[350px] flex flex-col gap-4">
       <h1 className="text-lg font-bold">Database Header</h1>
 
       <p>
         The first 100 bytes of the database file comprise the database file
-        header. The database file header is divided into fields as shown by the
-        table below
+        header.
       </p>
+
+      <HexViewer buffer={page.data.slice(0, 100)} />
 
       <table className="table w-full text-xs">
         <thead>

@@ -19,6 +19,8 @@ export function BPageHeaderInfo({ page }: { page: DatabaseBTreePage }) {
       <table className="table w-full text-xs">
         <thead>
           <tr>
+            <th className="w-[20px]"></th>
+            <th className="w-[20px]"></th>
             <th>Description</th>
             <th>Value</th>
           </tr>
@@ -26,27 +28,39 @@ export function BPageHeaderInfo({ page }: { page: DatabaseBTreePage }) {
 
         <tbody>
           <tr>
+            <td>0</td>
+            <td>1</td>
             <td>Page Type</td>
             <td>{page.type}</td>
           </tr>
           <tr>
+            <td>1</td>
+            <td>2</td>
             <td>First Free Block</td>
             <td>{page.header.firstFreeblockOffset}</td>
           </tr>
           <tr>
+            <td>3</td>
+            <td>2</td>
             <td>Cell Count</td>
             <td>{page.header.cellCount}</td>
           </tr>
           <tr>
+            <td>5</td>
+            <td>3</td>
             <td>Cell Content Area</td>
             <td>{page.header.cellPointerArrayOffset}</td>
           </tr>
           <tr>
+            <td>7</td>
+            <td>1</td>
             <td>Fragment Free Bytes</td>
             <td>{page.header.fragmentFreeBytes}</td>
           </tr>
           {page.type.includes("Interior") && (
             <tr>
+              <td>8</td>
+              <td>4</td>
               <td>Right Child Page Number</td>
               <td>{page.header.rightChildPageNumber}</td>
             </tr>

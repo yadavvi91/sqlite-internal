@@ -94,7 +94,7 @@ export function parseBTreePage(
   // This value appears in the header of interior b-tree pages only and
   // is omitted from all other pages.
   if (pageType === "Index Interior" || pageType === "Table Interior") {
-    rightChildPageNumber = view.getUint32(8);
+    rightChildPageNumber = view.getUint32(cursor + 8);
     headerSize = 12;
   }
 
@@ -118,10 +118,10 @@ export function parseBTreePage(
     cellPointerArray,
     header: {
       pageType: btreeType,
-      firstFreeblockOffset: view.getUint16(1),
+      firstFreeblockOffset: view.getUint16(cursor + 1),
       cellCount,
       cellPointerArrayOffset,
-      fragmentFreeBytes: view.getUint8(7),
+      fragmentFreeBytes: view.getUint8(cursor + 7),
       rightChildPageNumber,
     },
   };

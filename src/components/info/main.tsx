@@ -7,7 +7,12 @@ export function InfoSidebar() {
   const { info } = useInfoContext();
 
   if (info.type === "database-header") {
-    return <DatabaseHeaderInfo header={info.database.header} />;
+    return (
+      <DatabaseHeaderInfo
+        header={info.database.header}
+        page={info.database.pages[0]}
+      />
+    );
   } else if (info.type === "btree-page-header") {
     return <BPageHeaderInfo page={info.page as DatabaseBTreePage} />;
   }

@@ -37,7 +37,7 @@ export function HexViewer({ buffer }: HexViewProps) {
           Ascii
         </Button>
       </div>
-      <div className="font-mono bg-gray-200 p-2">
+      <div className="font-mono bg-gray-200 p-2 max-h-[150px] overflow-y-auto">
         {hexMode ? hexContent : asciiContent}
       </div>
     </div>
