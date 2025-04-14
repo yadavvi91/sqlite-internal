@@ -2,6 +2,7 @@ import { PropsWithChildren, useState } from "react";
 import { InfoType } from "../type";
 import { InfoSidebar } from "./info/main";
 import { InfoContext } from "./info-context";
+import { LucideCircleHelp } from "lucide-react";
 
 export function InfoProvider({ children }: PropsWithChildren) {
   const [info, setInfo] = useState<InfoType>({
@@ -32,4 +33,12 @@ export function InfoContent({ children }: PropsWithChildren) {
 
 export function InfoHeader({ children }: PropsWithChildren) {
   return <h1 className="text-lg font-bold">{children}</h1>;
+}
+
+export function InfoTableSizeTooltip() {
+  return (
+    <div title="Size in bytes" className="flex items-center gap-1">
+      <LucideCircleHelp className="w-4 h-4" />
+    </div>
+  );
 }

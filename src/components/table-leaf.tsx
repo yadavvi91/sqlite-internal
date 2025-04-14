@@ -3,7 +3,7 @@ import {
   IndexInteriorPage,
   IndexLeafPage,
   InfoType,
-  SqliteTableInteriorCell,
+  TableInteriorCell,
   SqliteTableLeafCell,
   TableInteriorPage,
   TableLeafPage,
@@ -82,7 +82,7 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
               info = {
                 type: "table-interior-cell",
                 page,
-                cell: cell as SqliteTableInteriorCell,
+                cell: cell as TableInteriorCell,
               };
             }
 

@@ -78,6 +78,13 @@ export function PageCanvasSegment({
     )
       return true;
 
+    if (
+      info.type === "table-interior-cell" &&
+      currentInfo.type === "table-interior-cell" &&
+      currentInfo.cell === info.cell
+    )
+      return true;
+
     return false;
   }, [info, currentInfo]);
 

@@ -50,9 +50,18 @@ export interface DatabaseBTreePage extends DatabaseUnparsedPage {
   cellPointerArray: SqliteCellPointer[];
 }
 
+export interface TableInteriorCell {
+  pageNumber: number;
+  rowid: number;
+  rowidLength: number;
+  content: ArrayBuffer;
+  length: number;
+  offset: number;
+}
+
 export interface TableInteriorPage extends DatabaseBTreePage {
   type: "Table Interior";
-  cells: SqliteTableInteriorCell[];
+  cells: TableInteriorCell[];
 }
 
 export interface TableLeafPage extends DatabaseBTreePage {
@@ -144,14 +153,6 @@ export interface SqliteCellPointer {
   value: number;
 }
 
-export interface SqliteTableInteriorCell {
-  pageNumber: number;
-  rowid: number;
-  content: ArrayBuffer;
-  length: number;
-  offset: number;
-}
-
 export interface SqliteTableLeafCell {
   size: number;
   rowid: number;
@@ -192,7 +193,7 @@ export type InfoType =
   | {
       type: "table-interior-cell";
       page: TableInteriorPage;
-      cell: SqliteTableInteriorCell;
+      cell: TableInteriorCell;
     }
   | {
       type: "index-leaf-cell";

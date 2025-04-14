@@ -2,7 +2,7 @@ import { parseVarint } from "../parser-utils";
 import {
   DatabaseBTreePage,
   TableInteriorPage,
-  SqliteTableInteriorCell,
+  TableInteriorCell,
 } from "../type";
 
 export function parseTableInteriorPage(
@@ -11,7 +11,7 @@ export function parseTableInteriorPage(
   const { cellPointerArray, data } = page;
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 
-  const cells: SqliteTableInteriorCell[] = new Array(cellPointerArray.length);
+  const cells: TableInteriorCell[] = new Array(cellPointerArray.length);
 
   for (let i = 0; i < cellPointerArray.length; i++) {
     const pageNumber = view.getUint32(cellPointerArray[i].value);
@@ -23,6 +23,7 @@ export function parseTableInteriorPage(
     cells[i] = {
       pageNumber,
       rowid,
+      rowidLength: bytesLength,
       content: data.subarray(
         cellPointerArray[i].value,
         cellPointerArray[i].value + 4 + bytesLength

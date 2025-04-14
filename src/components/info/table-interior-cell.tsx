@@ -1,12 +1,8 @@
-import { SqliteTableInteriorCell } from "../../type";
+import { TableInteriorCell } from "../../type";
 import { HexViewer } from "../hex-viewer";
-import { InfoContent, InfoHeader } from "../info";
+import { InfoContent, InfoHeader, InfoTableSizeTooltip } from "../info";
 
-export function TableInteriorCellInfo({
-  cell,
-}: {
-  cell: SqliteTableInteriorCell;
-}) {
+export function TableInteriorCellInfo({ cell }: { cell: TableInteriorCell }) {
   return (
     <InfoContent>
       <InfoHeader>Table Interior Cell</InfoHeader>
@@ -26,7 +22,9 @@ export function TableInteriorCellInfo({
       <table className="table w-full">
         <thead>
           <tr>
-            <th className="w-[25px]"></th>
+            <th className="w-[25px]">
+              <InfoTableSizeTooltip />
+            </th>
             <th>Description</th>
             <th>Value</th>
           </tr>
@@ -39,7 +37,7 @@ export function TableInteriorCellInfo({
             <td>{cell.pageNumber}</td>
           </tr>
           <tr>
-            <td></td>
+            <td>{cell.rowidLength}</td>
             <td>Rowid</td>
             <td>{cell.rowid}</td>
           </tr>
