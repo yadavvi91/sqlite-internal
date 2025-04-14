@@ -11,7 +11,9 @@ export function DatabaseHeaderInfo({
 }) {
   return (
     <InfoContent>
-      <InfoHeader>Database Header</InfoHeader>
+      <InfoHeader fileOffset={0} length={100} pageOffset={0}>
+        Database Header
+      </InfoHeader>
 
       <p>
         The first 100 bytes of the database file comprise the database file

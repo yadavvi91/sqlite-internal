@@ -31,8 +31,29 @@ export function InfoContent({ children }: PropsWithChildren) {
   );
 }
 
-export function InfoHeader({ children }: PropsWithChildren) {
-  return <h1 className="text-lg font-bold">{children}</h1>;
+interface InfoHeaderProps {
+  pageOffset?: number;
+  fileOffset?: number;
+  length?: number;
+}
+
+export function InfoHeader({
+  children,
+  fileOffset,
+  pageOffset,
+  length,
+}: PropsWithChildren<InfoHeaderProps>) {
+  return (
+    <div>
+      <h1 className="text-lg font-bold">{children}</h1>
+      {length && (
+        <div className="text-gray-500 text-sm">
+          File Offset: {fileOffset} • Page Offset: {pageOffset} • Length:{" "}
+          {length}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function InfoTableSizeTooltip() {

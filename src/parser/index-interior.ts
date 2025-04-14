@@ -48,6 +48,7 @@ export function parseIndexInteriorPage(
     return {
       leftChildPagePointer,
       payloadSize,
+      payloadSizeBytes,
       payload,
       overflowPageNumber,
       length: cursor - cell.value,

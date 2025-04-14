@@ -7,6 +7,7 @@ import {
   TableLeafCell,
   TableInteriorPage,
   TableLeafPage,
+  IndexInteriorCell,
 } from "../type";
 import { CANVAS_GRID_X_SIZE } from "./consts";
 import { PageCanvas, PageCanvasSegment } from "./page-canvas";
@@ -19,7 +20,8 @@ interface TableLeafCanvasProps {
 
 export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
   const headerOffset = page.number === 1 ? 100 : 0;
-  const headerSize = page.type === "Table Leaf" ? 8 : 12;
+  const headerSize =
+    page.type === "Table Leaf" || page.type === "Index Leaf" ? 8 : 12;
 
   return (
     <>
@@ -83,6 +85,12 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 type: "table-interior-cell",
                 page,
                 cell: cell as TableInteriorCell,
+              };
+            } else if (page.type === "Index Interior") {
+              info = {
+                type: "index-interior-cell",
+                page,
+                cell: cell as IndexInteriorCell,
               };
             }
 

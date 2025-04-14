@@ -1,24 +1,31 @@
-import { TableInteriorCell } from "../../type";
+import { DatabaseParsedPage, TableInteriorCell } from "../../type";
 import { HexViewer } from "../hex-viewer";
 import { InfoContent, InfoHeader, InfoTableSizeTooltip } from "../info";
 
-export function TableInteriorCellInfo({ cell }: { cell: TableInteriorCell }) {
+export function TableInteriorCellInfo({
+  cell,
+  page,
+}: {
+  cell: TableInteriorCell;
+  page: DatabaseParsedPage;
+}) {
   return (
     <InfoContent>
-      <InfoHeader>Table Interior Cell</InfoHeader>
-      <div>
-        Offset: {cell.offset} | Length: {cell.length}
-      </div>
+      <InfoHeader
+        fileOffset={page.data.byteLength * (page.number - 1) + cell.offset}
+        pageOffset={cell.offset}
+        length={cell.length}
+      >
+        Table Interior Cell
+      </InfoHeader>
 
       <HexViewer buffer={cell.content} />
-
       <div>
         <h2 className="font-bold">Explaination</h2>
         <p>
           For rowid {"<"} {cell.rowid} goes to page {cell.pageNumber}
         </p>
       </div>
-
       <table className="table w-full">
         <thead>
           <tr>

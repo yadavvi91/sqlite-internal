@@ -1,14 +1,19 @@
-import { DatabaseParsedPage, TableLeafCell } from "../../type";
-import { HexViewer } from "../hex-viewer";
+import { useMemo } from "react";
+import { DatabaseParsedPage, IndexInteriorCell } from "../../type";
 import { InfoContent, InfoHeader, InfoTableSizeTooltip } from "../info";
+import { HexViewer } from "../hex-viewer";
 
-export function TableLeafCellInfo({
+export function IndexInteriorCellInfo({
   cell,
   page,
 }: {
-  cell: TableLeafCell;
+  cell: IndexInteriorCell;
   page: DatabaseParsedPage;
 }) {
+  const buffer = useMemo(() => {
+    return page.data.slice(cell.offset, cell.offset + cell.length);
+  }, [page, cell]);
+
   return (
     <InfoContent>
       <InfoHeader
@@ -16,48 +21,42 @@ export function TableLeafCellInfo({
         pageOffset={cell.offset}
         length={cell.length}
       >
-        Table Leaf Cell
+        Index Interior Cell
       </InfoHeader>
-      <div>
-        Offset: {cell.offset} | Length: {cell.length}
-      </div>
 
-      <HexViewer buffer={cell.content} />
+      <HexViewer buffer={buffer} />
 
-      <table className="table w-full">
+      <table className="table w-full text-xs">
         <thead>
           <tr>
-            <th className="w-[45px] text-right">
+            <th className="w-[25px]">
               <InfoTableSizeTooltip />
             </th>
             <th>Description</th>
             <th>Value</th>
           </tr>
         </thead>
-
         <tbody>
           <tr>
-            <td>{cell.payloadSizeLength}</td>
+            <td>4</td>
+            <td>Left Child Pointer</td>
+            <td>{cell.leftChildPagePointer}</td>
+          </tr>
+          <tr>
+            <td>{cell.payloadSizeBytes}</td>
             <td>Payload Size</td>
-            <td>{cell.size}</td>
+            <td>{cell.payloadSize}</td>
           </tr>
           <tr>
-            <td>{cell.rowidLength}</td>
-            <td>Rowid</td>
-            <td>{cell.rowid}</td>
-          </tr>
-
-          <tr>
-            <td>{cell.payload.byteLength}</td>
+            <td>{cell.payloadSize}</td>
             <td>Payload</td>
             <td className="italic">{`<${cell.payload.byteLength} bytes of payload>`}</td>
           </tr>
-
-          {cell.overflowPageNumber > 0 && (
+          {cell.overflowPageNumber && (
             <tr>
-              <td></td>
+              <td>4</td>
               <td>Overflow Page</td>
-              <td>{cell.overflowPageNumber}</td>
+              <td></td>
             </tr>
           )}
         </tbody>

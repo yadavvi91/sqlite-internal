@@ -1,11 +1,23 @@
-import { SqliteCellPointer } from "../../type";
+import { DatabaseParsedPage, SqliteCellPointer } from "../../type";
 import { HexViewer } from "../hex-viewer";
 import { InfoContent, InfoHeader } from "../info";
 
-export function CellPointerInfo({ pointer }: { pointer: SqliteCellPointer }) {
+export function CellPointerInfo({
+  pointer,
+  page,
+}: {
+  pointer: SqliteCellPointer;
+  page: DatabaseParsedPage;
+}) {
   return (
     <InfoContent>
-      <InfoHeader>Cell Pointer</InfoHeader>
+      <InfoHeader
+        fileOffset={page.data.byteLength * (page.number - 1) + pointer.offset}
+        pageOffset={pointer.offset}
+        length={pointer.length}
+      >
+        Cell Pointer
+      </InfoHeader>
 
       <p>
         Cell content is stored in the cell content region of the b-tree page

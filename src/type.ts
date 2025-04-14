@@ -84,6 +84,7 @@ export interface TableLeafPage extends DatabaseBTreePage {
 export interface IndexInteriorCell {
   leftChildPagePointer: number;
   payloadSize: number;
+  payloadSizeBytes: number;
   payload: ArrayBuffer;
   overflowPageNumber: number | null;
   length: number;
