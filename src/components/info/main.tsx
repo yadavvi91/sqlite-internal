@@ -5,6 +5,8 @@ import { CellPointerInfo } from "./cell-pointer";
 import { DatabaseHeaderInfo } from "./database-header";
 import { IndexInteriorCellInfo } from "./index-interior-cell";
 import { IndexLeafCellInfo } from "./index-leaf-cell";
+import { OverflowNextPageInfo } from "./overflow-next-page";
+import { OverflowPayloadInfo } from "./overflow-payload";
 import { StartedInfo } from "./starter";
 import { TableInteriorCellInfo } from "./table-interior-cell";
 import { TableLeafCellInfo } from "./table-leaf-cell";
@@ -31,6 +33,10 @@ export function InfoSidebar() {
     return <IndexInteriorCellInfo cell={info.cell} page={info.page} />;
   } else if (info.type === "index-leaf-cell") {
     return <IndexLeafCellInfo cell={info.cell} page={info.page} />;
+  } else if (info.type === "overflow-next-page") {
+    return <OverflowNextPageInfo page={info.page} />;
+  } else if (info.type === "overflow-payload") {
+    return <OverflowPayloadInfo page={info.page} />;
   }
 
   return <StartedInfo />;

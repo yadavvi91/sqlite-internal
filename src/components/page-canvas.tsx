@@ -99,6 +99,20 @@ export function PageCanvasSegment({
     )
       return true;
 
+    if (
+      info.type === "overflow-next-page" &&
+      currentInfo.type === "overflow-next-page" &&
+      currentInfo.page === info.page
+    )
+      return true;
+
+    if (
+      info.type === "overflow-payload" &&
+      currentInfo.type === "overflow-payload" &&
+      currentInfo.page === info.page
+    )
+      return true;
+
     return false;
   }, [info, currentInfo]);
 

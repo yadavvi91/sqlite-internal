@@ -224,4 +224,12 @@ export type InfoType =
   | {
       type: "unknown-page";
       page: UnknownPage;
+    }
+  | {
+      type: "overflow-next-page";
+      page: OverflowPage;
+    }
+  | {
+      type: "overflow-payload";
+      page: OverflowPage;
     };
