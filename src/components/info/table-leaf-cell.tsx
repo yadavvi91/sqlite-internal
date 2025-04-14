@@ -1,18 +1,23 @@
-import { SqliteTableLeafCell } from "../../type";
+import { TableLeafCell } from "../../type";
 import { HexViewer } from "../hex-viewer";
+import { InfoContent, InfoHeader, InfoTableSizeTooltip } from "../info";
 
-export function TableLeafCellInfo({ cell }: { cell: SqliteTableLeafCell }) {
+export function TableLeafCellInfo({ cell }: { cell: TableLeafCell }) {
   return (
-    <div className="font-sans max-w-[350px] flex flex-col gap-4">
-      <h1 className="text-lg font-bold">Table Leaf Cell</h1>
+    <InfoContent>
+      <InfoHeader>Table Leaf Cell</InfoHeader>
       <div>
         Offset: {cell.offset} | Length: {cell.length}
       </div>
 
+      <HexViewer buffer={cell.content} />
+
       <table className="table w-full">
         <thead>
           <tr>
-            <th></th>
+            <th className="w-[45px] text-right">
+              <InfoTableSizeTooltip />
+            </th>
             <th>Description</th>
             <th>Value</th>
           </tr>
@@ -20,25 +25,20 @@ export function TableLeafCellInfo({ cell }: { cell: SqliteTableLeafCell }) {
 
         <tbody>
           <tr>
-            <td></td>
+            <td>{cell.payloadSizeLength}</td>
             <td>Payload Size</td>
             <td>{cell.size}</td>
           </tr>
           <tr>
-            <td></td>
+            <td>{cell.rowidLength}</td>
             <td>Rowid</td>
             <td>{cell.rowid}</td>
           </tr>
 
           <tr>
-            <td></td>
-            <td colSpan={2}>Payload</td>
-          </tr>
-
-          <tr>
-            <td colSpan={3}>
-              <HexViewer buffer={cell.payload} />
-            </td>
+            <td>{cell.payload.byteLength}</td>
+            <td>Payload</td>
+            <td className="italic">{`<${cell.payload.byteLength} bytes of payload>`}</td>
           </tr>
 
           {cell.overflowPageNumber > 0 && (
@@ -50,6 +50,6 @@ export function TableLeafCellInfo({ cell }: { cell: SqliteTableLeafCell }) {
           )}
         </tbody>
       </table>
-    </div>
+    </InfoContent>
   );
 }

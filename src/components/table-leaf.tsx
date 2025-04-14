@@ -4,7 +4,7 @@ import {
   IndexLeafPage,
   InfoType,
   TableInteriorCell,
-  SqliteTableLeafCell,
+  TableLeafCell,
   TableInteriorPage,
   TableLeafPage,
 } from "../type";
@@ -76,7 +76,7 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
               info = {
                 type: "table-leaf-cell",
                 page,
-                cell: cell as SqliteTableLeafCell,
+                cell: cell as TableLeafCell,
               };
             } else if (page.type === "Table Interior") {
               info = {
@@ -94,7 +94,7 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 colorClassName="bg-red-300"
                 label={
                   page.type === "Table Leaf"
-                    ? `Rowid: ${(cell as SqliteTableLeafCell).rowid}`
+                    ? `Rowid: ${(cell as TableLeafCell).rowid}`
                     : `Cell`
                 }
                 info={info}

@@ -3,7 +3,7 @@ import {
   DatabaseBTreePage,
   DatabaseHeader,
   TableLeafPage,
-  SqliteTableLeafCell,
+  TableLeafCell,
 } from "../type";
 
 export function parseTableLeafPage(
@@ -19,7 +19,7 @@ export function parseTableLeafPage(
   const minLocal = Math.floor(((usableSize - 12) * 32) / 255 - 23);
 
   // Parsing the rowid cells
-  const cells: SqliteTableLeafCell[] = new Array(cellPointerArray.length);
+  const cells: TableLeafCell[] = new Array(cellPointerArray.length);
   for (let i = 0; i < cellPointerArray.length; i++) {
     let cursor = cellPointerArray[i].value;
 
@@ -50,6 +50,8 @@ export function parseTableLeafPage(
     cells[i] = {
       rowid,
       size,
+      payloadSizeLength: sizeBytes,
+      rowidLength: rowidBytes,
       content: data.subarray(cellPointerArray[i].value, cursor),
       overflowPageNumber,
       payload,
