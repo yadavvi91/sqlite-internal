@@ -1,5 +1,6 @@
 import { DatabaseHeader, DatabaseParsedPage } from "../../type";
 import { HexViewer } from "../hex-viewer";
+import { InfoContent, InfoHeader } from "../info";
 
 export function DatabaseHeaderInfo({
   header,
@@ -9,8 +10,8 @@ export function DatabaseHeaderInfo({
   page: DatabaseParsedPage;
 }) {
   return (
-    <div className="font-sans max-w-[350px] flex flex-col gap-4">
-      <h1 className="text-lg font-bold">Database Header</h1>
+    <InfoContent>
+      <InfoHeader>Database Header</InfoHeader>
 
       <p>
         The first 100 bytes of the database file comprise the database file
@@ -53,15 +54,15 @@ export function DatabaseHeaderInfo({
           </tr>
           <tr>
             <td>Max Payload fraction</td>
-            <td>{header.maxPageSize}</td>
+            <td>{header.maximumEmbedPayloadFraction}</td>
           </tr>
           <tr>
             <td>Min Payload fraction</td>
-            <td>{header.writeVersion}</td>
+            <td>{header.minimumEmbedPayloadFraction}</td>
           </tr>
           <tr>
             <td>Leaf Payload fraction</td>
-            <td>{header.readVersion}</td>
+            <td>{header.leafPayloadFraction}</td>
           </tr>
           <tr>
             <td>File Change Counter</td>
@@ -93,42 +94,42 @@ export function DatabaseHeaderInfo({
           </tr>
           <tr>
             <td>Page Cache Size</td>
-            <td></td>
+            <td>{header.defaultPageCacheSize}</td>
           </tr>
           <tr>
             <td>Largest Root b-tree Page</td>
-            <td></td>
+            <td>{header.largesRootBTreePage}</td>
           </tr>
           <tr>
             <td>Text Encoding</td>
-            <td></td>
+            <td>{header.textEncoding}</td>
           </tr>
           <tr>
             <td>User Version</td>
-            <td></td>
+            <td>{header.userVersion}</td>
           </tr>
           <tr>
             <td>Incremental Vacuum</td>
-            <td></td>
+            <td>{header.incrementalVacuumMode}</td>
           </tr>
           <tr>
             <td>Application ID</td>
-            <td></td>
+            <td>{header.applicationId}</td>
           </tr>
           <tr>
-            <td>Reserved</td>
-            <td></td>
+            <td>Reserved for expansion</td>
+            <td>{header.reservedForExpansion}</td>
           </tr>
           <tr>
             <td>Version Valid for</td>
-            <td></td>
+            <td>{header.versionValidFor}</td>
           </tr>
           <tr>
             <td>SQLite Version Number</td>
-            <td></td>
+            <td>{header.sqliteVersionNumber}</td>
           </tr>
         </tbody>
       </table>
-    </div>
+    </InfoContent>
   );
 }

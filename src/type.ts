@@ -8,16 +8,25 @@ export interface DatabaseHeader {
   fileFormatWriteVersion: number;
   fileFormatReadVersion: number;
   reservedSpace: number;
-  maxPageSize: number;
-  writeVersion: number;
-  readVersion: number;
+  maximumEmbedPayloadFraction: number;
+  minimumEmbedPayloadFraction: number;
+  leafPayloadFraction: number;
+  fileChangeCounter: number;
   pageCount: number;
   firstFreelistPage: number;
   totalFreelistPages: number;
   schemaCookie: number;
   schemaFormatNumber: number;
-  schemaChangeCounter: number;
-  fileChangeCounter: number;
+  defaultPageCacheSize: number;
+  largesRootBTreePage: number;
+
+  textEncoding: number;
+  userVersion: number;
+  incrementalVacuumMode: number;
+  applicationId: number;
+  reservedForExpansion: number;
+  versionValidFor: number;
+  sqliteVersionNumber: number;
 }
 
 export type DatabasePageType =
