@@ -37,7 +37,7 @@ export function StartedInfo() {
         <h3 className="text-sm font-medium text-gray-700 mb-2">Follow me on</h3>
         <div className="flex gap-4">
           <a
-            href="https://github.com/invisal"
+            href="https://github.com/invisal/sqlite-internal"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-700 hover:text-black transition-colors"
