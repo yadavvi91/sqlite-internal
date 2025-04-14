@@ -18,9 +18,6 @@ export function TableLeafCellInfo({
       >
         Table Leaf Cell
       </InfoHeader>
-      <div>
-        Offset: {cell.offset} | Length: {cell.length}
-      </div>
 
       <HexViewer buffer={cell.content} />
 
