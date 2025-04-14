@@ -92,6 +92,13 @@ export function PageCanvasSegment({
     )
       return true;
 
+    if (
+      info.type === "index-leaf-cell" &&
+      currentInfo.type === "index-leaf-cell" &&
+      currentInfo.cell === info.cell
+    )
+      return true;
+
     return false;
   }, [info, currentInfo]);
 

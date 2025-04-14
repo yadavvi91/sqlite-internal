@@ -4,6 +4,7 @@ import { BPageHeaderInfo } from "./bpage-header";
 import { CellPointerInfo } from "./cell-pointer";
 import { DatabaseHeaderInfo } from "./database-header";
 import { IndexInteriorCellInfo } from "./index-interior-cell";
+import { IndexLeafCellInfo } from "./index-leaf-cell";
 import { StartedInfo } from "./starter";
 import { TableInteriorCellInfo } from "./table-interior-cell";
 import { TableLeafCellInfo } from "./table-leaf-cell";
@@ -28,6 +29,8 @@ export function InfoSidebar() {
     return <CellPointerInfo pointer={info.cellPointer} page={info.page} />;
   } else if (info.type === "index-interior-cell") {
     return <IndexInteriorCellInfo cell={info.cell} page={info.page} />;
+  } else if (info.type === "index-leaf-cell") {
+    return <IndexLeafCellInfo cell={info.cell} page={info.page} />;
   }
 
   return <StartedInfo />;

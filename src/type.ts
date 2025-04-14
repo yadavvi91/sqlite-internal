@@ -97,6 +97,7 @@ export interface IndexInteriorPage extends DatabaseBTreePage {
 }
 
 export interface IndexLeafCell {
+  payloadSizeLength: number;
   payloadSize: number;
   payload: ArrayBuffer;
   overflowPageNumber: number | null;

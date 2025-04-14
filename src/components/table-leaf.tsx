@@ -8,6 +8,7 @@ import {
   TableInteriorPage,
   TableLeafPage,
   IndexInteriorCell,
+  IndexLeafCell,
 } from "../type";
 import { CANVAS_GRID_X_SIZE } from "./consts";
 import { PageCanvas, PageCanvasSegment } from "./page-canvas";
@@ -91,6 +92,12 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                 type: "index-interior-cell",
                 page,
                 cell: cell as IndexInteriorCell,
+              };
+            } else if (page.type === "Index Leaf") {
+              info = {
+                type: "index-leaf-cell",
+                page,
+                cell: cell as IndexLeafCell,
               };
             }
 

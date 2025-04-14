@@ -45,6 +45,7 @@ export function parseIndexLeafPage(
     return {
       payloadSize,
       payload,
+      payloadSizeLength: payloadSizeBytes,
       overflowPageNumber,
       length: cursor - cell.value,
       offset: cell.value,
