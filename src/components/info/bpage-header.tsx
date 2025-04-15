@@ -51,7 +51,7 @@ export function BPageHeaderInfo({ page }: { page: DatabaseBTreePage }) {
             <td>{page.header.cellCount}</td>
           </tr>
           <tr>
-            <td>3</td>
+            <td>2</td>
             <td>Cell Content Area</td>
             <td>{page.header.cellPointerArrayOffset}</td>
           </tr>
