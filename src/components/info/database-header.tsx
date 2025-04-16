@@ -32,7 +32,7 @@ export function DatabaseHeaderInfo({
         <tbody>
           <tr>
             <td>Header String</td>
-            <td>SQLite Format 3\000</td>
+            <td>SQLite format 3\000</td>
           </tr>
           <tr>
             <td>Page Size</td>
