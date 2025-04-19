@@ -62,10 +62,15 @@ export function FullDatabaseTableScan({ db }: FullDatabaseTableScanProps) {
       const firstPage = pagesForTable[0];
 
       // Update the InfoContext to show we've selected a table in the full database table scan
+      // Use "table-scan" type with navigation props to ensure they're preserved when remounted
       setInfo({
-        type: "full-database-table-scan",
+        type: "table-scan",
+        page: firstPage,
         db: db,
-        selectedTablePage: firstPage,
+        tableName: tableName,
+        currentPageIndex: 0,
+        totalPages: pagesForTable.length,
+        isPartOfFullDatabaseScan: true
       });
 
       // Update the URL hash to navigate to the selected table's first page
@@ -85,10 +90,15 @@ export function FullDatabaseTableScan({ db }: FullDatabaseTableScanProps) {
       const nextPage = pagesForTable[nextIndex];
 
       // Update the InfoContext with the next page
+      // Use "table-scan" type with navigation props to ensure they're preserved when remounted
       setInfo({
-        type: "full-database-table-scan",
+        type: "table-scan",
+        page: nextPage,
         db: db,
-        selectedTablePage: nextPage,
+        tableName: selectedTableName,
+        currentPageIndex: nextIndex,
+        totalPages: pagesForTable.length,
+        isPartOfFullDatabaseScan: true
       });
 
       // Update the URL hash to navigate to the next page
@@ -108,10 +118,15 @@ export function FullDatabaseTableScan({ db }: FullDatabaseTableScanProps) {
       const prevPage = pagesForTable[prevIndex];
 
       // Update the InfoContext with the previous page
+      // Use "table-scan" type with navigation props to ensure they're preserved when remounted
       setInfo({
-        type: "full-database-table-scan",
+        type: "table-scan",
+        page: prevPage,
         db: db,
-        selectedTablePage: prevPage,
+        tableName: selectedTableName,
+        currentPageIndex: prevIndex,
+        totalPages: pagesForTable.length,
+        isPartOfFullDatabaseScan: true
       });
 
       // Update the URL hash to navigate to the previous page
@@ -175,55 +190,20 @@ export function FullDatabaseTableScan({ db }: FullDatabaseTableScanProps) {
         </>
       ) : (
         <>
-          {/* Navigation controls for table pages */}
-          <div className="bg-gray-100 p-3 rounded-md mb-4">
-            <div className="text-center mb-2">
-              <p className="text-sm font-medium text-gray-700">
-                Use the buttons below to navigate between pages of the {selectedTableName} table
-              </p>
-            </div>
-            <div className="flex justify-between items-center">
-              <button
-                onClick={() => setSelectedTableName(null)}
-                className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
-              >
-                Back to Tables
-              </button>
-
-              <div className="text-center">
-                <h3 className="font-medium">{selectedTableName}</h3>
-                <p className="text-sm text-gray-600">
-                  Page {currentPageIndex + 1} of {pagesForSelectedTable.length}
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handlePrevPage}
-                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
-                  disabled={currentPageIndex === 0}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Previous Page
-                </button>
-                <button
-                  onClick={handleNextPage}
-                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
-                  disabled={currentPageIndex === pagesForSelectedTable.length - 1}
-                >
-                  Next Page
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Use the existing TableScanInfo component for the current page */}
-          {currentPage && <TableScanInfo page={currentPage} db={db} onScanComplete={handleNextPage} />}
+          {/* Use the TableScanInfo component with navigation props */}
+          {currentPage && (
+            <TableScanInfo 
+              page={currentPage} 
+              db={db} 
+              onScanComplete={handleNextPage}
+              tableName={selectedTableName}
+              currentPageIndex={currentPageIndex}
+              totalPages={pagesForSelectedTable.length}
+              onPrevPage={handlePrevPage}
+              onNextPage={handleNextPage}
+              onBackToTables={() => setSelectedTableName(null)}
+            />
+          )}
         </>
       )}
     </InfoContent>

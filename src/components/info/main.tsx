@@ -14,7 +14,7 @@ import { TableLeafCellInfo } from "./table-leaf-cell";
 import { TableScanInfo } from "./table-scan";
 
 export function InfoSidebar() {
-  const { info } = useInfoContext();
+  const { info, setInfo } = useInfoContext();
 
   if (info.type === "database-header") {
     return (
@@ -40,7 +40,47 @@ export function InfoSidebar() {
   } else if (info.type === "overflow-payload") {
     return <OverflowPayloadInfo page={info.page} />;
   } else if (info.type === "table-scan") {
-    return <TableScanInfo page={info.page} db={info.db} />;
+    return <TableScanInfo 
+      page={info.page} 
+      db={info.db} 
+      tableName={info.tableName}
+      currentPageIndex={info.currentPageIndex}
+      totalPages={info.totalPages}
+      onPrevPage={info.isPartOfFullDatabaseScan ? () => {
+        // Handle navigation through hash change
+        const pagesForTable = info.tableName ? 
+          info.db.pages.filter(p => p.type === "Table Leaf" && p.description === info.tableName) : [];
+
+        if (info.currentPageIndex !== undefined && info.currentPageIndex > 0) {
+          const prevIndex = info.currentPageIndex - 1;
+          const prevPage = pagesForTable[prevIndex];
+          if (prevPage) {
+            window.location.hash = `page=${prevPage.number}`;
+          }
+        }
+      } : undefined}
+      onNextPage={info.isPartOfFullDatabaseScan ? () => {
+        // Handle navigation through hash change
+        const pagesForTable = info.tableName ? 
+          info.db.pages.filter(p => p.type === "Table Leaf" && p.description === info.tableName) : [];
+
+        if (info.currentPageIndex !== undefined && info.totalPages !== undefined && 
+            info.currentPageIndex < info.totalPages - 1) {
+          const nextIndex = info.currentPageIndex + 1;
+          const nextPage = pagesForTable[nextIndex];
+          if (nextPage) {
+            window.location.hash = `page=${nextPage.number}`;
+          }
+        }
+      } : undefined}
+      onBackToTables={info.isPartOfFullDatabaseScan ? () => {
+        // Go back to full database table scan view
+        setInfo({
+          type: "full-database-table-scan",
+          db: info.db
+        });
+      } : undefined}
+    />;
   } else if (info.type === "full-database-table-scan") {
     return <FullDatabaseTableScan db={info.db} />;
   }

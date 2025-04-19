@@ -8,9 +8,26 @@ interface TableScanInfoProps {
   page: TableLeafPage;
   db: Database;
   onScanComplete?: () => void;
+  // Navigation props
+  tableName?: string;
+  currentPageIndex?: number;
+  totalPages?: number;
+  onPrevPage?: () => void;
+  onNextPage?: () => void;
+  onBackToTables?: () => void;
 }
 
-export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) {
+export function TableScanInfo({ 
+  page, 
+  db, 
+  onScanComplete,
+  tableName,
+  currentPageIndex,
+  totalPages,
+  onPrevPage,
+  onNextPage,
+  onBackToTables
+}: TableScanInfoProps) {
   const { setInfo } = useInfoContext();
   const [currentCellPointerIndex, setCurrentCellPointerIndex] = useState<number>(-1);
   const [currentCellIndex, setCurrentCellIndex] = useState<number>(-1);
@@ -180,6 +197,55 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
     <InfoContent>
       <InfoHeader>Full Table Scan</InfoHeader>
 
+      {/* Navigation controls for table pages */}
+      {tableName && currentPageIndex !== undefined && totalPages !== undefined && onPrevPage && onNextPage && onBackToTables && (
+        <div className="bg-gray-100 p-3 rounded-md mb-4">
+          <div className="text-center mb-2">
+            <p className="text-sm font-medium text-gray-700">
+              Use the buttons below to navigate between pages of the {tableName} table
+            </p>
+          </div>
+          <div className="flex justify-between items-center">
+            <button
+              onClick={onBackToTables}
+              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+            >
+              Back to Tables
+            </button>
+
+            <div className="text-center">
+              <h3 className="font-medium">{tableName}</h3>
+              <p className="text-sm text-gray-600">
+                Page {currentPageIndex + 1} of {totalPages}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={onPrevPage}
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
+                disabled={currentPageIndex === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Previous Page
+              </button>
+              <button
+                onClick={onNextPage}
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
+                disabled={currentPageIndex === totalPages - 1}
+              >
+                Next Page
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gray-100 p-3 rounded-md">
         <div className="mb-3">
           <p className="font-medium">Page: {page.number}</p>
@@ -239,7 +305,7 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
               <p className="text-green-600">Scan complete! All {page.cellPointerArray.length} cell pointers scanned.</p>
               {onScanComplete && (
                 <p className="text-sm text-blue-600 mt-1">
-                  You can click the "Next Page" button above to move to the next page, or wait for automatic progression.
+                  You can click the "Next Page" button to move to the next page, or wait for automatic progression.
                 </p>
               )}
             </div>

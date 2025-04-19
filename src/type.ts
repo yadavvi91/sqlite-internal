@@ -244,6 +244,11 @@ export type InfoType =
     db: Database;
     currentCellIndex?: number;
     currentCellPointerIndex?: number;
+    // Navigation props for full database table scan
+    tableName?: string;
+    currentPageIndex?: number;
+    totalPages?: number;
+    isPartOfFullDatabaseScan?: boolean;
   }
   | {
     type: "full-database-table-scan";
