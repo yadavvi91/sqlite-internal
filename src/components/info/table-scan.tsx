@@ -7,9 +7,10 @@ import { HexViewer } from "../hex-viewer";
 interface TableScanInfoProps {
   page: TableLeafPage;
   db: Database;
+  onScanComplete?: () => void;
 }
 
-export function TableScanInfo({ page, db }: TableScanInfoProps) {
+export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) {
   const { setInfo } = useInfoContext();
   const [currentCellPointerIndex, setCurrentCellPointerIndex] = useState<number>(-1);
   const [currentCellIndex, setCurrentCellIndex] = useState<number>(-1);
@@ -37,6 +38,22 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
     setIsPaused(false);
     setScanComplete(false);
   }, [page.number]);
+
+  // Call onScanComplete callback when scan is complete
+  useEffect(() => {
+    if (!isScanning || isPaused || !scanComplete) return;
+
+    // If onScanComplete callback is provided, call it after a short delay
+    if (onScanComplete) {
+      const timer = setTimeout(() => {
+        onScanComplete();
+        // Reset scan state for the next page
+        resetScan();
+      }, 1500); // Give user time to see the completion message
+
+      return () => clearTimeout(timer);
+    }
+  }, [isScanning, isPaused, scanComplete, onScanComplete, resetScan]);
 
   // Find the cell index that corresponds to a cell pointer
   const findCellIndexFromPointer = (pointerIndex: number): number => {
