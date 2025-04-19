@@ -83,24 +83,14 @@ export function TableScanInfo({
     setScanComplete(false);
   };
 
-  // Reset scan state when page changes and auto-start scan if in full database table scan mode
+  // Reset scan state when page changes
   useEffect(() => {
     setCurrentCellPointerIndex(-1);
     setCurrentCellIndex(-1);
     setIsScanning(false);
     setIsPaused(false);
     setScanComplete(false);
-
-    // Auto-start scan if onScanComplete is provided (meaning we're in full database table scan mode)
-    if (onScanComplete) {
-      // Use a small delay to ensure the UI is updated before starting the scan
-      const timer = setTimeout(() => {
-        startScan();
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [page.number, onScanComplete]);
+  }, [page.number]);
 
   // Define resetScan function before it's used in the useEffect below
   const resetScan = () => {

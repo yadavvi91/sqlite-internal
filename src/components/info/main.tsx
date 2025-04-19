@@ -55,6 +55,17 @@ export function InfoSidebar() {
           const prevIndex = info.currentPageIndex - 1;
           const prevPage = pagesForTable[prevIndex];
           if (prevPage) {
+            // Update the info context with the new page
+            setInfo({
+              type: "table-scan",
+              page: prevPage,
+              db: info.db,
+              tableName: info.tableName,
+              currentPageIndex: prevIndex,
+              totalPages: info.totalPages,
+              isPartOfFullDatabaseScan: true
+            });
+            // Update the URL hash to navigate to the previous page
             window.location.hash = `page=${prevPage.number}`;
           }
         }
@@ -69,6 +80,17 @@ export function InfoSidebar() {
           const nextIndex = info.currentPageIndex + 1;
           const nextPage = pagesForTable[nextIndex];
           if (nextPage) {
+            // Update the info context with the new page
+            setInfo({
+              type: "table-scan",
+              page: nextPage,
+              db: info.db,
+              tableName: info.tableName,
+              currentPageIndex: nextIndex,
+              totalPages: info.totalPages,
+              isPartOfFullDatabaseScan: true
+            });
+            // Update the URL hash to navigate to the next page
             window.location.hash = `page=${nextPage.number}`;
           }
         }
@@ -79,6 +101,34 @@ export function InfoSidebar() {
           type: "full-database-table-scan",
           db: info.db
         });
+
+        // Update the URL hash to point to the first page (DB Header page)
+        window.location.hash = `page=1`;
+      } : undefined}
+      onScanComplete={info.isPartOfFullDatabaseScan ? () => {
+        // Handle navigation to the next page when scan is complete
+        const pagesForTable = info.tableName ? 
+          info.db.pages.filter(p => p.type === "Table Leaf" && p.description === info.tableName) : [];
+
+        if (info.currentPageIndex !== undefined && info.totalPages !== undefined && 
+            info.currentPageIndex < info.totalPages - 1) {
+          const nextIndex = info.currentPageIndex + 1;
+          const nextPage = pagesForTable[nextIndex];
+          if (nextPage) {
+            // Update the info context with the new page
+            setInfo({
+              type: "table-scan",
+              page: nextPage,
+              db: info.db,
+              tableName: info.tableName,
+              currentPageIndex: nextIndex,
+              totalPages: info.totalPages,
+              isPartOfFullDatabaseScan: true
+            });
+            // Update the URL hash to navigate to the next page
+            window.location.hash = `page=${nextPage.number}`;
+          }
+        }
       } : undefined}
     />;
   } else if (info.type === "full-database-table-scan") {
