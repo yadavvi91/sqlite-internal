@@ -13,6 +13,7 @@ import {
 import { CANVAS_GRID_X_SIZE } from "./consts";
 import { PageCanvas, PageCanvasSegment } from "./page-canvas";
 import { PageCanvasContainer, PageHeader } from "./page-header";
+import { useInfoContext } from "./info-context";
 
 interface TableLeafCanvasProps {
   page: TableLeafPage | TableInteriorPage | IndexInteriorPage | IndexLeafPage;
@@ -20,13 +21,40 @@ interface TableLeafCanvasProps {
 }
 
 export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
+  const { info, setInfo } = useInfoContext();
   const headerOffset = page.number === 1 ? 100 : 0;
   const headerSize =
     page.type === "Table Leaf" || page.type === "Index Leaf" ? 8 : 12;
 
+  const startTableScan = () => {
+    if (page.type === "Table Leaf") {
+      setInfo({
+        type: "table-scan",
+        page: page as TableLeafPage,
+        db,
+      });
+    }
+  };
+
+  // Check if we're currently in a table scan for this page
+  const isTableScan = info.type === "table-scan" && 
+                     info.page.number === page.number;
+
+  // Get the current cell index from the info context if we're in a table scan
+  const currentScanCellIndex = isTableScan ? info.currentCellIndex : -1;
+
   return (
     <>
-      <PageHeader page={page} />
+      <PageHeader page={page}>
+        {page.type === "Table Leaf" && (
+          <button
+            onClick={startTableScan}
+            className="ml-4 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+          >
+            Full Table Scan
+          </button>
+        )}
+      </PageHeader>
       <PageCanvasContainer>
         <PageCanvas size={db.header.pageSize} x={CANVAS_GRID_X_SIZE}>
           {page.number === 1 && (
@@ -101,12 +129,20 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
               };
             }
 
+            // Check if this cell is the current cell being scanned
+            const isCurrentScanCell = isTableScan && 
+                                     page.type === "Table Leaf" && 
+                                     index === currentScanCellIndex;
+
+            // Determine the color class based on whether this is the current scan cell
+            const colorClass = isCurrentScanCell ? "bg-green-500" : "bg-red-300";
+
             return (
               <PageCanvasSegment
                 key={index}
                 offset={cellOffset}
                 length={cellLength}
-                colorClassName="bg-red-300"
+                colorClassName={colorClass}
                 label={
                   page.type === "Table Leaf"
                     ? `Rowid: ${(cell as TableLeafCell).rowid}`

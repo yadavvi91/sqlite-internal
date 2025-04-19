@@ -237,4 +237,10 @@ export type InfoType =
   | {
     type: "overflow-payload";
     page: OverflowPage;
+  }
+  | {
+    type: "table-scan";
+    page: TableLeafPage;
+    db: Database;
+    currentCellIndex?: number;
   };

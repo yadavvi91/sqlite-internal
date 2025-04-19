@@ -10,6 +10,7 @@ import { OverflowPayloadInfo } from "./overflow-payload";
 import { StartedInfo } from "./starter";
 import { TableInteriorCellInfo } from "./table-interior-cell";
 import { TableLeafCellInfo } from "./table-leaf-cell";
+import { TableScanInfo } from "./table-scan";
 
 export function InfoSidebar() {
   const { info } = useInfoContext();
@@ -37,6 +38,8 @@ export function InfoSidebar() {
     return <OverflowNextPageInfo page={info.page} />;
   } else if (info.type === "overflow-payload") {
     return <OverflowPayloadInfo page={info.page} />;
+  } else if (info.type === "table-scan") {
+    return <TableScanInfo page={info.page} db={info.db} />;
   }
 
   return <StartedInfo />;

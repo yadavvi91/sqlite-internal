@@ -3,7 +3,7 @@ import { DatabaseParsedPage } from "../type";
 import { PropsWithChildren } from "react";
 import { useInfoContext } from "./info-context";
 
-export function PageHeader({ page }: { page: DatabaseParsedPage }) {
+export function PageHeader({ page, children }: PropsWithChildren<{ page: DatabaseParsedPage }>) {
   const { setInfo } = useInfoContext();
 
   return (
@@ -18,6 +18,7 @@ export function PageHeader({ page }: { page: DatabaseParsedPage }) {
           <LucideChevronLeft className="inline-block" />
         </a>
         Page {page.number} | {page.type}
+        {children}
       </div>
     </div>
   );
