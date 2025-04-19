@@ -34,6 +34,7 @@ export function parseTableLeafPage(
 
     if (size > maxLocal) {
       localSize = minLocal + ((size - minLocal) % (usableSize - 4));
+      if (localSize >= maxLocal) localSize = minLocal;
       overflow = true;
     }
 
@@ -42,9 +43,13 @@ export function parseTableLeafPage(
 
     let overflowPageNumber = 0;
 
-    if (overflow) {
-      overflowPageNumber = view.getUint32(cursor);
-      cursor += 4;
+    try {
+      if (overflow) {
+        overflowPageNumber = view.getUint32(cursor);
+        cursor += 4;
+      }
+    } catch {
+      console.error("Error reading overflow page number:", { page: page.number, cell: cellPointerArray[i].value, size, localSize, overflow, minLocal, maxLocal, usableSize });
     }
 
     cells[i] = {
