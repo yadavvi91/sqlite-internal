@@ -39,6 +39,15 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
     setScanComplete(false);
   }, [page.number]);
 
+  // Define resetScan function before it's used in the useEffect below
+  const resetScan = () => {
+    setCurrentCellPointerIndex(-1);
+    setCurrentCellIndex(-1);
+    setIsScanning(false);
+    setIsPaused(false);
+    setScanComplete(false);
+  };
+
   // Call onScanComplete callback when scan is complete
   useEffect(() => {
     if (!isScanning || isPaused || !scanComplete) return;
@@ -53,7 +62,7 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
 
       return () => clearTimeout(timer);
     }
-  }, [isScanning, isPaused, scanComplete, onScanComplete, resetScan]);
+  }, [isScanning, isPaused, scanComplete, onScanComplete]);
 
   // Find the cell index that corresponds to a cell pointer
   const findCellIndexFromPointer = (pointerIndex: number): number => {
@@ -137,14 +146,6 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
       // If we've reached the last cell pointer, complete the scan
       setScanComplete(true);
     }
-  };
-
-  const resetScan = () => {
-    setCurrentCellPointerIndex(-1);
-    setCurrentCellIndex(-1);
-    setIsScanning(false);
-    setIsPaused(false);
-    setScanComplete(false);
   };
 
   const getCurrentCellPointer = (): SqliteCellPointer | null => {
