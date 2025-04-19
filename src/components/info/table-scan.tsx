@@ -30,14 +30,55 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
     });
   }, [currentCellPointerIndex, currentCellIndex, page, db, setInfo]);
 
-  // Reset scan state when page changes
+  // Find the cell index that corresponds to a cell pointer
+  const findCellIndexFromPointer = (pointerIndex: number): number => {
+    if (pointerIndex < 0 || pointerIndex >= page.cellPointerArray.length) {
+      return -1;
+    }
+
+    const pointer = page.cellPointerArray[pointerIndex];
+    const pointerValue = pointer.value;
+
+    // Find the cell that starts at the offset pointed to by the cell pointer
+    for (let i = 0; i < page.cells.length; i++) {
+      if (page.cells[i].offset === pointerValue) {
+        return i;
+      }
+    }
+
+    return -1;
+  };
+
+  // Define startScan function before it's used in the useEffect below
+  const startScan = () => {
+    // Find the cell index for the first cell pointer
+    const initialCellIndex = findCellIndexFromPointer(0);
+    // Update both indices at the same time
+    setCurrentCellPointerIndex(0);
+    setCurrentCellIndex(initialCellIndex);
+    setIsScanning(true);
+    setIsPaused(false);
+    setScanComplete(false);
+  };
+
+  // Reset scan state when page changes and auto-start scan if in full database table scan mode
   useEffect(() => {
     setCurrentCellPointerIndex(-1);
     setCurrentCellIndex(-1);
     setIsScanning(false);
     setIsPaused(false);
     setScanComplete(false);
-  }, [page.number]);
+
+    // Auto-start scan if onScanComplete is provided (meaning we're in full database table scan mode)
+    if (onScanComplete) {
+      // Use a small delay to ensure the UI is updated before starting the scan
+      const timer = setTimeout(() => {
+        startScan();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [page.number, onScanComplete]);
 
   // Define resetScan function before it's used in the useEffect below
   const resetScan = () => {
@@ -64,25 +105,6 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
     }
   }, [isScanning, isPaused, scanComplete, onScanComplete]);
 
-  // Find the cell index that corresponds to a cell pointer
-  const findCellIndexFromPointer = (pointerIndex: number): number => {
-    if (pointerIndex < 0 || pointerIndex >= page.cellPointerArray.length) {
-      return -1;
-    }
-
-    const pointer = page.cellPointerArray[pointerIndex];
-    const pointerValue = pointer.value;
-
-    // Find the cell that starts at the offset pointed to by the cell pointer
-    for (let i = 0; i < page.cells.length; i++) {
-      if (page.cells[i].offset === pointerValue) {
-        return i;
-      }
-    }
-
-    return -1;
-  };
-
   // Handle the scanning animation
   useEffect(() => {
     if (!isScanning || isPaused || scanComplete) return;
@@ -107,17 +129,6 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
 
     return () => clearTimeout(timer);
   }, [isScanning, isPaused, scanComplete, currentCellPointerIndex, page.cellPointerArray.length]);
-
-  const startScan = () => {
-    // Find the cell index for the first cell pointer
-    const initialCellIndex = findCellIndexFromPointer(0);
-    // Update both indices at the same time
-    setCurrentCellPointerIndex(0);
-    setCurrentCellIndex(initialCellIndex);
-    setIsScanning(true);
-    setIsPaused(false);
-    setScanComplete(false);
-  };
 
   const pauseScan = () => {
     setIsPaused(true);
@@ -224,7 +235,14 @@ export function TableScanInfo({ page, db, onScanComplete }: TableScanInfoProps) 
           {currentCellPointerIndex === -1 && currentCellIndex === -1 ? (
             <p>Ready to scan. Click "Start Scan" to begin.</p>
           ) : scanComplete ? (
-            <p className="text-green-600">Scan complete! All {page.cellPointerArray.length} cell pointers scanned.</p>
+            <div>
+              <p className="text-green-600">Scan complete! All {page.cellPointerArray.length} cell pointers scanned.</p>
+              {onScanComplete && (
+                <p className="text-sm text-blue-600 mt-1">
+                  You can click the "Next Page" button above to move to the next page, or wait for automatic progression.
+                </p>
+              )}
+            </div>
           ) : (
             <p>
               Scanning cell pointer {currentCellPointerIndex + 1} of {page.cellPointerArray.length}

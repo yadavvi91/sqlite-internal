@@ -177,6 +177,11 @@ export function FullDatabaseTableScan({ db }: FullDatabaseTableScanProps) {
         <>
           {/* Navigation controls for table pages */}
           <div className="bg-gray-100 p-3 rounded-md mb-4">
+            <div className="text-center mb-2">
+              <p className="text-sm font-medium text-gray-700">
+                Use the buttons below to navigate between pages of the {selectedTableName} table
+              </p>
+            </div>
             <div className="flex justify-between items-center">
               <button
                 onClick={() => setSelectedTableName(null)}
@@ -195,17 +200,23 @@ export function FullDatabaseTableScan({ db }: FullDatabaseTableScanProps) {
               <div className="flex gap-2">
                 <button
                   onClick={handlePrevPage}
-                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
                   disabled={currentPageIndex === 0}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
                   Previous Page
                 </button>
                 <button
                   onClick={handleNextPage}
-                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
                   disabled={currentPageIndex === pagesForSelectedTable.length - 1}
                 >
                   Next Page
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
                 </button>
               </div>
             </div>
