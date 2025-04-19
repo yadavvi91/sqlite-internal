@@ -44,8 +44,13 @@ export function TableScanInfo({
       db,
       currentCellIndex,
       currentCellPointerIndex,
+      // Preserve navigation props
+      tableName,
+      currentPageIndex,
+      totalPages,
+      isPartOfFullDatabaseScan: Boolean(tableName && currentPageIndex !== undefined && totalPages !== undefined)
     });
-  }, [currentCellPointerIndex, currentCellIndex, page, db, setInfo]);
+  }, [currentCellPointerIndex, currentCellIndex, page, db, setInfo, tableName, currentPageIndex, totalPages]);
 
   // Find the cell index that corresponds to a cell pointer
   const findCellIndexFromPointer = (pointerIndex: number): number => {
