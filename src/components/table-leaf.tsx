@@ -94,7 +94,7 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
             // Determine the color class based on whether this is the current scan cell pointer
             const colorClass = isCurrentScanCellPointer ? "bg-blue-500" : "bg-yellow-300";
 
-            // Only show the arrow for the current cell pointer during a scan, or always show it when not scanning
+            // Always show the arrow for the current cell pointer during a scan, or for all cell pointers when not scanning
             const showArrow = !isTableScan || isCurrentScanCellPointer;
 
             return (

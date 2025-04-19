@@ -15,7 +15,7 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [scanComplete, setScanComplete] = useState<boolean>(false);
-  const [scanPhase, setScanPhase] = useState<"pointer" | "cell">("pointer");
+  // No longer need scanPhase since we're highlighting both at the same time
 
   // Update the InfoContext when the current cell pointer index or cell index changes
   useEffect(() => {
@@ -23,10 +23,10 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
       type: "table-scan",
       page,
       db,
-      currentCellIndex: scanPhase === "cell" ? currentCellIndex : -1,
-      currentCellPointerIndex: scanPhase === "pointer" ? currentCellPointerIndex : -1,
+      currentCellIndex,
+      currentCellPointerIndex,
     });
-  }, [currentCellPointerIndex, currentCellIndex, scanPhase, page, db, setInfo]);
+  }, [currentCellPointerIndex, currentCellIndex, page, db, setInfo]);
 
   // Reset scan state when page changes
   useEffect(() => {
@@ -35,7 +35,6 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
     setIsScanning(false);
     setIsPaused(false);
     setScanComplete(false);
-    setScanPhase("pointer");
   }, [page.number]);
 
   // Find the cell index that corresponds to a cell pointer
@@ -62,44 +61,30 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
     if (!isScanning || isPaused || scanComplete) return;
 
     const timer = setTimeout(() => {
-      if (scanPhase === "pointer") {
-        // We're looking at a cell pointer
-        // First, follow the current cell pointer to its cell
-        const cellIndex = findCellIndexFromPointer(currentCellPointerIndex);
-        if (cellIndex !== -1) {
-          setCurrentCellIndex(cellIndex);
-          setScanPhase("cell");
-        } else if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-          // If we can't find the cell, move to the next cell pointer
-          setCurrentCellPointerIndex(currentCellPointerIndex + 1);
-        } else {
-          // If we can't find the cell and we're at the last cell pointer, complete the scan
-          setScanComplete(true);
-          setIsScanning(false);
-        }
-      } else {
-        // We're looking at a cell
-        // After looking at the cell, go back to looking at cell pointers
-        setScanPhase("pointer");
+      // Find the cell index for the current cell pointer
+      const cellIndex = findCellIndexFromPointer(currentCellPointerIndex);
 
-        // Move to the next cell pointer if we're not at the last one
-        if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-          setCurrentCellPointerIndex(currentCellPointerIndex + 1);
-        } else {
-          // If we've reached the last cell pointer, complete the scan
-          setScanComplete(true);
-          setIsScanning(false);
-        }
+      // Set the current cell index
+      setCurrentCellIndex(cellIndex);
+
+      // Move to the next cell pointer if we're not at the last one
+      if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
+        setCurrentCellPointerIndex(currentCellPointerIndex + 1);
+      } else {
+        // If we've reached the last cell pointer, complete the scan
+        setScanComplete(true);
+        setIsScanning(false);
       }
     }, 1000); // 1 second delay between steps
 
     return () => clearTimeout(timer);
-  }, [isScanning, isPaused, scanComplete, scanPhase, currentCellPointerIndex, currentCellIndex, page.cellPointerArray.length, page.cells.length]);
+  }, [isScanning, isPaused, scanComplete, currentCellPointerIndex, page.cellPointerArray.length]);
 
   const startScan = () => {
     setCurrentCellPointerIndex(0);
-    setCurrentCellIndex(-1);
-    setScanPhase("pointer");
+    // Set the initial cell index based on the first cell pointer
+    const initialCellIndex = findCellIndexFromPointer(0);
+    setCurrentCellIndex(initialCellIndex);
     setIsScanning(true);
     setIsPaused(false);
     setScanComplete(false);
@@ -114,43 +99,29 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
   };
 
   const stepScan = () => {
-    if (scanPhase === "pointer") {
-      if (currentCellPointerIndex === -1) {
-        // We haven't started the scan yet, so start with the first cell pointer
-        setCurrentCellPointerIndex(0);
-      } else {
-        // Follow the current cell pointer to its cell
-        const cellIndex = findCellIndexFromPointer(currentCellPointerIndex);
-        if (cellIndex !== -1) {
-          setCurrentCellIndex(cellIndex);
-          setScanPhase("cell");
-        } else if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-          // If we can't find the cell, move to the next cell pointer
-          setCurrentCellPointerIndex(currentCellPointerIndex + 1);
-        } else {
-          // If we can't find the cell and we're at the last cell pointer, complete the scan
-          setScanComplete(true);
-        }
-      }
-    } else {
-      // We're looking at a cell
-      // After looking at the cell, go back to looking at cell pointers
-      setScanPhase("pointer");
+    if (currentCellPointerIndex === -1) {
+      // We haven't started the scan yet, so start with the first cell pointer
+      setCurrentCellPointerIndex(0);
+      // Set the initial cell index based on the first cell pointer
+      const initialCellIndex = findCellIndexFromPointer(0);
+      setCurrentCellIndex(initialCellIndex);
+    } else if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
+      // Move to the next cell pointer
+      const nextPointerIndex = currentCellPointerIndex + 1;
+      setCurrentCellPointerIndex(nextPointerIndex);
 
-      // Move to the next cell pointer if we're not at the last one
-      if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-        setCurrentCellPointerIndex(currentCellPointerIndex + 1);
-      } else {
-        // If we've reached the last cell pointer, complete the scan
-        setScanComplete(true);
-      }
+      // Find and set the corresponding cell index
+      const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+      setCurrentCellIndex(cellIndex);
+    } else {
+      // If we've reached the last cell pointer, complete the scan
+      setScanComplete(true);
     }
   };
 
   const resetScan = () => {
     setCurrentCellPointerIndex(-1);
     setCurrentCellIndex(-1);
-    setScanPhase("pointer");
     setIsScanning(false);
     setIsPaused(false);
     setScanComplete(false);
@@ -235,22 +206,13 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
             <p className="text-green-600">Scan complete! All {page.cellPointerArray.length} cell pointers scanned.</p>
           ) : (
             <p>
-              {scanPhase === "pointer" ? (
-                <>
-                  Reading cell pointer {currentCellPointerIndex + 1} of {page.cellPointerArray.length}
-                  {isPaused && " (Paused)"}
-                </>
-              ) : (
-                <>
-                  Following pointer to cell data
-                  {isPaused && " (Paused)"}
-                </>
-              )}
+              Scanning cell pointer {currentCellPointerIndex + 1} of {page.cellPointerArray.length}
+              {isPaused && " (Paused)"}
             </p>
           )}
         </div>
 
-        {currentCellPointer && scanPhase === "pointer" && (
+        {currentCellPointer && (
           <div className="mt-4 border border-gray-300 rounded p-2 bg-white">
             <h3 className="font-medium mb-2">Current Cell Pointer</h3>
             <p>Value: {currentCellPointer.value} (points to cell data)</p>
@@ -260,7 +222,7 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
           </div>
         )}
 
-        {currentCell && scanPhase === "cell" && (
+        {currentCell && (
           <div className="mt-4 border border-gray-300 rounded p-2 bg-white">
             <h3 className="font-medium mb-2">Current Cell</h3>
             <p>Rowid: {currentCell.rowid}</p>

@@ -53,6 +53,37 @@ export function PageCanvasSegment({
 
   const selected = useMemo(() => {
     if (!info) return false;
+
+    // Special case for table scan - we want to highlight both the cell pointer and the cell
+    if (currentInfo.type === "table-scan") {
+      // If this is a cell pointer and it's the current one being scanned
+      if (
+        info.type === "btree-cell-pointer" &&
+        currentInfo.currentCellPointerIndex !== undefined &&
+        info.page.number === currentInfo.page.number
+      ) {
+        const cellPointerArray = info.page.cellPointerArray;
+        const cellPointerIndex = cellPointerArray.findIndex(
+          (cp) => cp === info.cellPointer
+        );
+        return cellPointerIndex === currentInfo.currentCellPointerIndex;
+      }
+
+      // If this is a cell and it's the current one being scanned
+      if (
+        info.type === "table-leaf-cell" &&
+        currentInfo.currentCellIndex !== undefined &&
+        info.page.number === currentInfo.page.number
+      ) {
+        const cells = info.page.cells;
+        const cellIndex = cells.findIndex((c) => c === info.cell);
+        return cellIndex === currentInfo.currentCellIndex;
+      }
+
+      return false;
+    }
+
+    // Regular case - not a table scan
     if (info.type !== currentInfo.type) return false;
 
     if (info.type === "database-header") return true;
