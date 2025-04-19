@@ -3,6 +3,7 @@ import { useInfoContext } from "../info-context";
 import { BPageHeaderInfo } from "./bpage-header";
 import { CellPointerInfo } from "./cell-pointer";
 import { DatabaseHeaderInfo } from "./database-header";
+import { FullDatabaseTableScan } from "./full-database-table-scan";
 import { IndexInteriorCellInfo } from "./index-interior-cell";
 import { IndexLeafCellInfo } from "./index-leaf-cell";
 import { OverflowNextPageInfo } from "./overflow-next-page";
@@ -40,6 +41,8 @@ export function InfoSidebar() {
     return <OverflowPayloadInfo page={info.page} />;
   } else if (info.type === "table-scan") {
     return <TableScanInfo page={info.page} db={info.db} />;
+  } else if (info.type === "full-database-table-scan") {
+    return <FullDatabaseTableScan db={info.db} />;
   }
 
   return <StartedInfo />;

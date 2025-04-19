@@ -54,6 +54,24 @@ export function PageCanvasSegment({
   const selected = useMemo(() => {
     if (!info) return false;
 
+    // Special case for full database table scan
+    if (currentInfo.type === "full-database-table-scan") {
+      // If no table is selected, highlight the database header
+      if (!currentInfo.selectedTablePage && info.type === "database-header") {
+        return true;
+      }
+
+      // If a table is selected, delegate to the table scan logic
+      if (currentInfo.selectedTablePage && info.type === "table-leaf-cell") {
+        // Check if this cell is in the selected table page
+        if (info.page.number === currentInfo.selectedTablePage.number) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     // Special case for table scan - we want to highlight both the cell pointer and the cell
     if (currentInfo.type === "table-scan") {
       // If this is a cell pointer and it's the current one being scanned

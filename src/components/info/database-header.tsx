@@ -1,6 +1,7 @@
-import { DatabaseHeader, DatabaseParsedPage } from "../../type";
+import { Database, DatabaseHeader, DatabaseParsedPage } from "../../type";
 import { HexViewer } from "../hex-viewer";
 import { InfoContent, InfoHeader } from "../info";
+import { useInfoContext } from "../info-context";
 
 export function DatabaseHeaderInfo({
   header,
@@ -9,11 +10,32 @@ export function DatabaseHeaderInfo({
   header: DatabaseHeader;
   page: DatabaseParsedPage;
 }) {
+  const { info, setInfo } = useInfoContext();
+
+  const startFullDatabaseTableScan = () => {
+    // Use the database object that's already in the info context
+    if (info.type === "database-header") {
+      setInfo({
+        type: "full-database-table-scan",
+        db: info.database,
+      });
+    }
+  };
+
   return (
     <InfoContent>
       <InfoHeader fileOffset={0} length={100} pageOffset={0}>
         Database Header
       </InfoHeader>
+
+      <div className="flex items-center mb-4">
+        <button
+          onClick={startFullDatabaseTableScan}
+          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+        >
+          Full Database Table Scan
+        </button>
+      </div>
 
       <p>
         The first 100 bytes of the database file comprise the database file

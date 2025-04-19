@@ -244,4 +244,9 @@ export type InfoType =
     db: Database;
     currentCellIndex?: number;
     currentCellPointerIndex?: number;
+  }
+  | {
+    type: "full-database-table-scan";
+    db: Database;
+    selectedTablePage?: TableLeafPage;
   };
