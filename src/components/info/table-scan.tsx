@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { InfoContent, InfoHeader } from "../info";
 import { Database, SqliteCellPointer, TableLeafCell, TableLeafPage } from "../../type";
 import { useInfoContext } from "../info-context";
+import { HexViewer } from "../hex-viewer";
 
 interface TableScanInfoProps {
   page: TableLeafPage;
@@ -61,15 +62,16 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
     if (!isScanning || isPaused || scanComplete) return;
 
     const timer = setTimeout(() => {
-      // Find the cell index for the current cell pointer
-      const cellIndex = findCellIndexFromPointer(currentCellPointerIndex);
-
-      // Set the current cell index
-      setCurrentCellIndex(cellIndex);
-
-      // Move to the next cell pointer if we're not at the last one
       if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-        setCurrentCellPointerIndex(currentCellPointerIndex + 1);
+        // Move to the next cell pointer
+        const nextPointerIndex = currentCellPointerIndex + 1;
+
+        // Find the cell index for the next cell pointer
+        const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+
+        // Update both indices at the same time
+        setCurrentCellPointerIndex(nextPointerIndex);
+        setCurrentCellIndex(cellIndex);
       } else {
         // If we've reached the last cell pointer, complete the scan
         setScanComplete(true);
@@ -81,9 +83,10 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
   }, [isScanning, isPaused, scanComplete, currentCellPointerIndex, page.cellPointerArray.length]);
 
   const startScan = () => {
-    setCurrentCellPointerIndex(0);
-    // Set the initial cell index based on the first cell pointer
+    // Find the cell index for the first cell pointer
     const initialCellIndex = findCellIndexFromPointer(0);
+    // Update both indices at the same time
+    setCurrentCellPointerIndex(0);
     setCurrentCellIndex(initialCellIndex);
     setIsScanning(true);
     setIsPaused(false);
@@ -101,17 +104,17 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
   const stepScan = () => {
     if (currentCellPointerIndex === -1) {
       // We haven't started the scan yet, so start with the first cell pointer
-      setCurrentCellPointerIndex(0);
-      // Set the initial cell index based on the first cell pointer
       const initialCellIndex = findCellIndexFromPointer(0);
+      // Update both indices at the same time
+      setCurrentCellPointerIndex(0);
       setCurrentCellIndex(initialCellIndex);
     } else if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
       // Move to the next cell pointer
       const nextPointerIndex = currentCellPointerIndex + 1;
-      setCurrentCellPointerIndex(nextPointerIndex);
-
-      // Find and set the corresponding cell index
+      // Find the corresponding cell index
       const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+      // Update both indices at the same time
+      setCurrentCellPointerIndex(nextPointerIndex);
       setCurrentCellIndex(cellIndex);
     } else {
       // If we've reached the last cell pointer, complete the scan
@@ -229,6 +232,10 @@ export function TableScanInfo({ page, db }: TableScanInfoProps) {
             <p className="text-sm text-gray-600">
               Offset: {currentCell.offset}, Length: {currentCell.length}
             </p>
+            <div className="mt-2">
+              <h4 className="font-medium text-sm mb-1">Cell Content:</h4>
+              <HexViewer buffer={currentCell.content} />
+            </div>
           </div>
         )}
 
