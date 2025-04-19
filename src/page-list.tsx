@@ -48,11 +48,13 @@ export function PageList({ db }: { db: Database }) {
           <a
             href={`#page=${page.number}`}
             key={index}
-            className="bg-white border p-4 rounded w-[180px] hover:border-black cursor-pointer text-sm"
+            className="bg-white border p-4 rounded w-[180px] hover:border-black cursor-pointer text-sm overflow-hidden"
           >
             <h3 className="font-bold text-2xl">{page.number}</h3>
-            <p>{page.type}</p>
-            <p>{db.header.pageSize} bytes</p>
+            <p className="text-sm">{page.type}</p>
+            <p className="text-sm line-clamp-1 text-ellipsis overflow-hidden text-blue-700">
+              {page.description}
+            </p>
           </a>
         );
       })}
