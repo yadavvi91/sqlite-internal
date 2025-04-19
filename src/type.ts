@@ -43,6 +43,11 @@ export interface DatabaseUnparsedPage {
   number: number;
   data: Uint8Array;
   type: DatabasePageType;
+
+  // Displaying only the page number is not very informative.
+  // It would be more useful to indicate which table the page belongs to.
+  // This can be achieved later by mapping it with the output of SELECT * FROM dbstat;
+  description?: string;
 }
 
 export interface DatabaseBTreePage extends DatabaseUnparsedPage {
@@ -169,67 +174,67 @@ export interface SqliteCellPointer {
 
 export type InfoType =
   | {
-      type: "started";
-    }
+    type: "started";
+  }
   | {
-      type: "database" | "database-header";
-      database: Database;
-    }
+    type: "database" | "database-header";
+    database: Database;
+  }
   | {
-      type: "page";
-      database: Database;
-      page: DatabaseParsedPage;
-    }
+    type: "page";
+    database: Database;
+    page: DatabaseParsedPage;
+  }
   | {
-      type: "btree-page-header";
-      page: DatabaseParsedPage;
-    }
+    type: "btree-page-header";
+    page: DatabaseParsedPage;
+  }
   | {
-      type: "btree-cell-pointer";
-      page: DatabaseParsedPage;
-      cellPointer: SqliteCellPointer;
-    }
+    type: "btree-cell-pointer";
+    page: DatabaseParsedPage;
+    cellPointer: SqliteCellPointer;
+  }
   | {
-      type: "table-leaf-cell";
-      page: TableLeafPage;
-      cell: TableLeafCell;
-    }
+    type: "table-leaf-cell";
+    page: TableLeafPage;
+    cell: TableLeafCell;
+  }
   | {
-      type: "table-interior-cell";
-      page: TableInteriorPage;
-      cell: TableInteriorCell;
-    }
+    type: "table-interior-cell";
+    page: TableInteriorPage;
+    cell: TableInteriorCell;
+  }
   | {
-      type: "index-leaf-cell";
-      page: IndexLeafPage;
-      cell: IndexLeafCell;
-    }
+    type: "index-leaf-cell";
+    page: IndexLeafPage;
+    cell: IndexLeafCell;
+  }
   | {
-      type: "index-interior-cell";
-      page: IndexInteriorPage;
-      cell: IndexInteriorCell;
-    }
+    type: "index-interior-cell";
+    page: IndexInteriorPage;
+    cell: IndexInteriorCell;
+  }
   | {
-      type: "free-trunk-page";
-      page: FreeTrunkPage;
-    }
+    type: "free-trunk-page";
+    page: FreeTrunkPage;
+  }
   | {
-      type: "free-leaf-page";
-      page: FreeLeafPage;
-    }
+    type: "free-leaf-page";
+    page: FreeLeafPage;
+  }
   | {
-      type: "overflow-page";
-      page: OverflowPage;
-    }
+    type: "overflow-page";
+    page: OverflowPage;
+  }
   | {
-      type: "unknown-page";
-      page: UnknownPage;
-    }
+    type: "unknown-page";
+    page: UnknownPage;
+  }
   | {
-      type: "overflow-next-page";
-      page: OverflowPage;
-    }
+    type: "overflow-next-page";
+    page: OverflowPage;
+  }
   | {
-      type: "overflow-payload";
-      page: OverflowPage;
-    };
+    type: "overflow-payload";
+    page: OverflowPage;
+  };
