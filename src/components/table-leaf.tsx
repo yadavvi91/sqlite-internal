@@ -40,8 +40,9 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
   const isTableScan = info.type === "table-scan" && 
                      info.page.number === page.number;
 
-  // Get the current cell index from the info context if we're in a table scan
+  // Get the current cell index and cell pointer index from the info context if we're in a table scan
   const currentScanCellIndex = isTableScan ? info.currentCellIndex : -1;
+  const currentScanCellPointerIndex = isTableScan ? info.currentCellPointerIndex : -1;
 
   return (
     <>
@@ -85,14 +86,25 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
             const cellOffset = cell.offset;
             const cellLength = cell.length;
 
+            // Check if this cell pointer is the current one being used in the scan
+            const isCurrentScanCellPointer = isTableScan && 
+                                           page.type === "Table Leaf" && 
+                                           index === currentScanCellPointerIndex;
+
+            // Determine the color class based on whether this is the current scan cell pointer
+            const colorClass = isCurrentScanCellPointer ? "bg-blue-500" : "bg-yellow-300";
+
+            // Only show the arrow for the current cell pointer during a scan, or always show it when not scanning
+            const showArrow = !isTableScan || isCurrentScanCellPointer;
+
             return (
               <PageCanvasSegment
                 key={index}
                 offset={cellOffset}
                 length={cellLength}
                 info={{ type: "btree-cell-pointer", page, cellPointer: cell }}
-                colorClassName="bg-yellow-300"
-                pointToOffset={cell.value}
+                colorClassName={colorClass}
+                pointToOffset={showArrow ? cell.value : undefined}
               />
             );
           })}

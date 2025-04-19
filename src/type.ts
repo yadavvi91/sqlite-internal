@@ -243,4 +243,5 @@ export type InfoType =
     page: TableLeafPage;
     db: Database;
     currentCellIndex?: number;
+    currentCellPointerIndex?: number;
   };
