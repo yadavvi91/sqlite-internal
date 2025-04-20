@@ -168,7 +168,8 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
         }
 
         // Extract the table name from the query plan
-        const tableMatch = indexUsage.detail.match(/SEARCH TABLE ([^\s]+)/);
+        // Use a flexible regex that matches "SEARCH" followed by a word (the table name)
+        const tableMatch = indexUsage.detail.match(/SEARCH\s+([^\s]+)/);
         if (tableMatch && tableMatch[1]) {
           const tableName = tableMatch[1];
 
