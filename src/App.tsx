@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import Viewer from "./Viewer";
 import FileDropZone from "./components/file-drop-zone";
 import { InfoProvider } from "./components/info";
