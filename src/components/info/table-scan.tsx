@@ -37,6 +37,10 @@ export function TableScanInfo({
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [scanComplete, setScanComplete] = useState<boolean>(false);
+  // For binary search-like scan of matching rowids
+  const [matchingCellPointerIndices, setMatchingCellPointerIndices] = useState<number[]>([]);
+  const [currentMatchingIndex, setCurrentMatchingIndex] = useState<number>(-1);
+  const [isBinarySearchScan, setIsBinarySearchScan] = useState<boolean>(false);
   // No longer need scanPhase since we're highlighting both at the same time
 
   // Update the InfoContext when the current cell pointer index or cell index changes
@@ -78,6 +82,66 @@ export function TableScanInfo({
 
   // Define startScan function before it's used in the useEffect below
   const startScan = () => {
+    // Check if we have matching rowids for a binary search-like scan
+    if (matchingRowids && matchingRowids.length > 0) {
+      // Create a mapping from rowids to cell pointer indices
+      const rowidToCellMap = new Map<number, number>();
+
+      // First, map each cell to its rowid
+      page.cells.forEach((cell, cellIndex) => {
+        rowidToCellMap.set(cell.rowid, cellIndex);
+      });
+
+      // Create a mapping from cell indices to cell pointer indices
+      const cellToPointerMap = new Map<number, number>();
+
+      // For each cell pointer, find the corresponding cell index
+      page.cellPointerArray.forEach((pointer, pointerIndex) => {
+        const cellIndex = findCellIndexFromPointer(pointerIndex);
+        if (cellIndex !== -1) {
+          cellToPointerMap.set(cellIndex, pointerIndex);
+        }
+      });
+
+      // Find the cell pointer indices that correspond to matching rowids
+      const matchingIndices: number[] = [];
+      matchingRowids.forEach(rowid => {
+        const cellIndex = rowidToCellMap.get(rowid);
+        if (cellIndex !== undefined) {
+          const pointerIndex = cellToPointerMap.get(cellIndex);
+          if (pointerIndex !== undefined) {
+            matchingIndices.push(pointerIndex);
+          }
+        }
+      });
+
+      // Sort the matching indices to visit them in order
+      matchingIndices.sort((a, b) => a - b);
+
+      if (matchingIndices.length > 0) {
+        // Set up for binary search-like scan
+        setMatchingCellPointerIndices(matchingIndices);
+        setCurrentMatchingIndex(0);
+        setIsBinarySearchScan(true);
+
+        // Set the initial cell pointer and cell indices
+        const initialPointerIndex = matchingIndices[0];
+        const initialCellIndex = findCellIndexFromPointer(initialPointerIndex);
+
+        setCurrentCellPointerIndex(initialPointerIndex);
+        setCurrentCellIndex(initialCellIndex);
+        setIsScanning(true);
+        setIsPaused(false);
+        setScanComplete(false);
+        return;
+      }
+    }
+
+    // If no matching rowids or no matching indices found, fall back to sequential scan
+    setIsBinarySearchScan(false);
+    setMatchingCellPointerIndices([]);
+    setCurrentMatchingIndex(-1);
+
     // Find the cell index for the first cell pointer
     const initialCellIndex = findCellIndexFromPointer(0);
     // Update both indices at the same time
@@ -104,6 +168,11 @@ export function TableScanInfo({
     setIsScanning(false);
     setIsPaused(false);
     setScanComplete(false);
+
+    // Reset binary search-like scan state
+    setMatchingCellPointerIndices([]);
+    setCurrentMatchingIndex(-1);
+    setIsBinarySearchScan(false);
   };
 
   // Call onScanComplete callback when scan is complete
@@ -127,25 +196,47 @@ export function TableScanInfo({
     if (!isScanning || isPaused || scanComplete) return;
 
     const timer = setTimeout(() => {
-      if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-        // Move to the next cell pointer
-        const nextPointerIndex = currentCellPointerIndex + 1;
+      if (isBinarySearchScan) {
+        // Binary search-like scan - only visit matching cell pointers
+        if (currentMatchingIndex < matchingCellPointerIndices.length - 1) {
+          // Move to the next matching cell pointer
+          const nextMatchingIndex = currentMatchingIndex + 1;
+          const nextPointerIndex = matchingCellPointerIndices[nextMatchingIndex];
 
-        // Find the cell index for the next cell pointer
-        const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+          // Find the cell index for the next cell pointer
+          const cellIndex = findCellIndexFromPointer(nextPointerIndex);
 
-        // Update both indices at the same time
-        setCurrentCellPointerIndex(nextPointerIndex);
-        setCurrentCellIndex(cellIndex);
+          // Update all indices
+          setCurrentMatchingIndex(nextMatchingIndex);
+          setCurrentCellPointerIndex(nextPointerIndex);
+          setCurrentCellIndex(cellIndex);
+        } else {
+          // If we've reached the last matching cell pointer, complete the scan
+          setScanComplete(true);
+          setIsScanning(false);
+        }
       } else {
-        // If we've reached the last cell pointer, complete the scan
-        setScanComplete(true);
-        setIsScanning(false);
+        // Sequential scan - visit all cell pointers
+        if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
+          // Move to the next cell pointer
+          const nextPointerIndex = currentCellPointerIndex + 1;
+
+          // Find the cell index for the next cell pointer
+          const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+
+          // Update both indices at the same time
+          setCurrentCellPointerIndex(nextPointerIndex);
+          setCurrentCellIndex(cellIndex);
+        } else {
+          // If we've reached the last cell pointer, complete the scan
+          setScanComplete(true);
+          setIsScanning(false);
+        }
       }
     }, 1000); // 1 second delay between steps
 
     return () => clearTimeout(timer);
-  }, [isScanning, isPaused, scanComplete, currentCellPointerIndex, page.cellPointerArray.length]);
+  }, [isScanning, isPaused, scanComplete, currentCellPointerIndex, currentMatchingIndex, isBinarySearchScan, matchingCellPointerIndices, page.cellPointerArray.length]);
 
   const pauseScan = () => {
     setIsPaused(true);
@@ -156,23 +247,54 @@ export function TableScanInfo({
   };
 
   const stepScan = () => {
-    if (currentCellPointerIndex === -1) {
-      // We haven't started the scan yet, so start with the first cell pointer
-      const initialCellIndex = findCellIndexFromPointer(0);
-      // Update both indices at the same time
-      setCurrentCellPointerIndex(0);
-      setCurrentCellIndex(initialCellIndex);
-    } else if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
-      // Move to the next cell pointer
-      const nextPointerIndex = currentCellPointerIndex + 1;
-      // Find the corresponding cell index
-      const cellIndex = findCellIndexFromPointer(nextPointerIndex);
-      // Update both indices at the same time
-      setCurrentCellPointerIndex(nextPointerIndex);
-      setCurrentCellIndex(cellIndex);
+    if (isBinarySearchScan) {
+      // Binary search-like scan - only visit matching cell pointers
+      if (currentMatchingIndex === -1) {
+        // We haven't started the scan yet, so start with the first matching cell pointer
+        if (matchingCellPointerIndices.length > 0) {
+          const initialPointerIndex = matchingCellPointerIndices[0];
+          const initialCellIndex = findCellIndexFromPointer(initialPointerIndex);
+
+          setCurrentMatchingIndex(0);
+          setCurrentCellPointerIndex(initialPointerIndex);
+          setCurrentCellIndex(initialCellIndex);
+        }
+      } else if (currentMatchingIndex < matchingCellPointerIndices.length - 1) {
+        // Move to the next matching cell pointer
+        const nextMatchingIndex = currentMatchingIndex + 1;
+        const nextPointerIndex = matchingCellPointerIndices[nextMatchingIndex];
+
+        // Find the corresponding cell index
+        const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+
+        // Update all indices
+        setCurrentMatchingIndex(nextMatchingIndex);
+        setCurrentCellPointerIndex(nextPointerIndex);
+        setCurrentCellIndex(cellIndex);
+      } else {
+        // If we've reached the last matching cell pointer, complete the scan
+        setScanComplete(true);
+      }
     } else {
-      // If we've reached the last cell pointer, complete the scan
-      setScanComplete(true);
+      // Sequential scan - visit all cell pointers
+      if (currentCellPointerIndex === -1) {
+        // We haven't started the scan yet, so start with the first cell pointer
+        const initialCellIndex = findCellIndexFromPointer(0);
+        // Update both indices at the same time
+        setCurrentCellPointerIndex(0);
+        setCurrentCellIndex(initialCellIndex);
+      } else if (currentCellPointerIndex < page.cellPointerArray.length - 1) {
+        // Move to the next cell pointer
+        const nextPointerIndex = currentCellPointerIndex + 1;
+        // Find the corresponding cell index
+        const cellIndex = findCellIndexFromPointer(nextPointerIndex);
+        // Update both indices at the same time
+        setCurrentCellPointerIndex(nextPointerIndex);
+        setCurrentCellIndex(cellIndex);
+      } else {
+        // If we've reached the last cell pointer, complete the scan
+        setScanComplete(true);
+      }
     }
   };
 
@@ -320,7 +442,15 @@ export function TableScanInfo({
             <p>Ready to scan. Click "Start Scan" to begin.</p>
           ) : scanComplete ? (
             <div>
-              <p className="text-green-600">Scan complete! All {page.cellPointerArray.length} cell pointers scanned.</p>
+              {isBinarySearchScan ? (
+                <p className="text-green-600">
+                  Binary search scan complete! All {matchingCellPointerIndices.length} matching cell pointers scanned.
+                </p>
+              ) : (
+                <p className="text-green-600">
+                  Sequential scan complete! All {page.cellPointerArray.length} cell pointers scanned.
+                </p>
+              )}
               {onScanComplete && (
                 <p className="text-sm text-blue-600 mt-1">
                   You can click the "Next Page" button to move to the next page, or wait for automatic progression.
@@ -328,10 +458,28 @@ export function TableScanInfo({
               )}
             </div>
           ) : (
-            <p>
-              Scanning cell pointer {currentCellPointerIndex + 1} of {page.cellPointerArray.length}
-              {isPaused && " (Paused)"}
-            </p>
+            <div>
+              {isBinarySearchScan ? (
+                <div>
+                  <p className="text-blue-600 font-medium">Binary Search-like Scan</p>
+                  <p>
+                    Scanning matching cell pointer {currentMatchingIndex + 1} of {matchingCellPointerIndices.length}
+                    {isPaused && " (Paused)"}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Cell pointer index: {currentCellPointerIndex} (out of {page.cellPointerArray.length} total)
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-gray-600 font-medium">Sequential Scan</p>
+                  <p>
+                    Scanning cell pointer {currentCellPointerIndex + 1} of {page.cellPointerArray.length}
+                    {isPaused && " (Paused)"}
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -362,16 +510,32 @@ export function TableScanInfo({
         <div className="mt-4">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div 
-              className="bg-blue-600 h-2.5 rounded-full" 
+              className={`h-2.5 rounded-full ${isBinarySearchScan ? 'bg-purple-600' : 'bg-blue-600'}`}
               style={{ 
-                width: `${scanComplete ? 100 : (currentCellPointerIndex + 1) / page.cellPointerArray.length * 100}%`,
+                width: isBinarySearchScan
+                  ? `${scanComplete ? 100 : (currentMatchingIndex + 1) / matchingCellPointerIndices.length * 100}%`
+                  : `${scanComplete ? 100 : (currentCellPointerIndex + 1) / page.cellPointerArray.length * 100}%`,
                 transition: "width 0.5s ease-in-out"
               }}
             ></div>
           </div>
-          <p className="text-xs text-right mt-1">
-            {currentCellPointerIndex + 1} / {page.cellPointerArray.length} cell pointers
-          </p>
+          <div className="flex justify-between mt-1">
+            {isBinarySearchScan && (
+              <p className="text-xs text-purple-600">
+                Binary search-like scan: only visiting matching rowids
+              </p>
+            )}
+            <p className="text-xs text-right">
+              {scanComplete
+                ? isBinarySearchScan
+                  ? `${matchingCellPointerIndices.length} / ${matchingCellPointerIndices.length} matching cell pointers`
+                  : `${page.cellPointerArray.length} / ${page.cellPointerArray.length} cell pointers`
+                : isBinarySearchScan
+                  ? `${currentMatchingIndex + 1} / ${matchingCellPointerIndices.length} matching cell pointers`
+                  : `${currentCellPointerIndex + 1} / ${page.cellPointerArray.length} cell pointers`
+              }
+            </p>
+          </div>
         </div>
       </div>
     </InfoContent>
