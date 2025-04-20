@@ -92,6 +92,9 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     }
   }, [db]);
 
+  // Extract query conditions for display purposes
+  const [queryCondition, setQueryCondition] = useState<string>("");
+
   // Execute the query and get the query plan
   const executeQuery = () => {
     if (!query.trim()) {
@@ -109,6 +112,18 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     setQueryResult(null);
     setCurrentPageIndex(0);
     setShowResultPages(false);
+
+    // Try to extract the WHERE clause for display purposes
+    try {
+      const whereClauseMatch = query.match(/WHERE\s+([^;]+)/i);
+      if (whereClauseMatch && whereClauseMatch[1]) {
+        setQueryCondition(whereClauseMatch[1].trim());
+      } else {
+        setQueryCondition("");
+      }
+    } catch (err) {
+      setQueryCondition("");
+    }
 
     try {
       // Get the query plan
@@ -236,6 +251,11 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     } else {
       setSearchComplete(true);
       setIsSearching(false);
+
+      // If we have query results, automatically show the data rows
+      if (queryResult) {
+        showPages();
+      }
     }
   };
 
@@ -435,9 +455,22 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
               <div className="mb-2">
                 <p className="text-sm">
                   {searchComplete
-                    ? "Search complete! The query has traversed the B-tree index."
+                    ? queryResult 
+                      ? "Search complete! The index has been used to locate the data rows matching your query."
+                      : "Search complete! The query has traversed the B-tree index."
                     : `Step ${currentStep + 1} of ${searchPath.length}: Visiting page ${searchPath[currentStep]}`}
                 </p>
+
+                {searchComplete && queryResult && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-xs text-green-800">
+                      <strong>Success!</strong> The index search is complete and has found data matching your query.
+                    </p>
+                    <p className="text-xs text-green-700 mt-1">
+                      You can now view the actual data rows by clicking the "View Data Rows" button below.
+                    </p>
+                  </div>
+                )}
 
                 <div className="mt-2 flex gap-2">
                   {isSearching && !searchComplete && (
@@ -455,6 +488,19 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
                       className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
                     >
                       Restart Search
+                    </button>
+                  )}
+
+                  {queryResult && !showResultPages && (
+                    <button
+                      onClick={showPages}
+                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 flex items-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                      </svg>
+                      View Data Rows
                     </button>
                   )}
                 </div>
@@ -559,6 +605,31 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
                 <p className="font-medium">Current Page: {queryResult.pages[currentPageIndex]?.number}</p>
                 <p className="text-sm text-gray-600">Table: {queryResult.tableName}</p>
                 <p className="text-sm text-gray-600">Total Cells: {queryResult.pages[currentPageIndex]?.cells.length || 0}</p>
+
+                {/* Explanation of the relationship between index and data */}
+                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-sm font-medium text-blue-800">How the Index Was Used:</p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    The query used the <strong>{indexName}</strong> index to quickly locate the matching rows in the <strong>{queryResult.tableName}</strong> table.
+                  </p>
+                  {queryCondition && (
+                    <p className="text-xs text-blue-700 mt-1">
+                      For your condition <code className="bg-blue-100 px-1 rounded">{queryCondition}</code>, the index allowed SQLite to find the matching rows without scanning the entire table.
+                    </p>
+                  )}
+                  <p className="text-xs text-blue-700 mt-1">
+                    Instead of scanning all pages of the table, SQLite used the B-tree index structure to find only the relevant pages containing the data that matches your query.
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    You are now viewing the actual data pages that contain the rows matching your query criteria.
+                  </p>
+                  <div className="mt-2 p-1 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-800">
+                      <strong>Note:</strong> In a real SQLite database, the index would point directly to the specific rows that match your query. 
+                      This visualization shows you the pages containing those rows.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
