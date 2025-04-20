@@ -8,7 +8,7 @@ interface SQLEditorProps {
 }
 
 export function SQLEditor({ onExecute }: SQLEditorProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
 
   const extensions = useMemo(() => {
