@@ -116,11 +116,15 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     setShowResultPages(false);
     setMatchingRowCount(0);
 
+    // Store query condition locally to use throughout the function
+    let localQueryCondition = "";
+
     // Try to extract the WHERE clause for display purposes
     try {
       const whereClauseMatch = query.match(/WHERE\s+([^;]+)/i);
       if (whereClauseMatch && whereClauseMatch[1]) {
-        setQueryCondition(whereClauseMatch[1].trim());
+        localQueryCondition = whereClauseMatch[1].trim();
+        setQueryCondition(localQueryCondition);
       } else {
         setQueryCondition("");
       }
@@ -153,6 +157,9 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
         step.detail.includes("USING INDEX") || 
         step.detail.includes("SEARCH") && step.detail.includes("USING")
       );
+
+      // Create a local variable to store the query result
+      let localQueryResult: QueryResult | null = null;
 
       if (indexUsage) {
         setUsesIndex(true);
@@ -189,10 +196,11 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
             // Sort pages by page number
             const sortedPages = tablePages.sort((a, b) => a.number - b.number);
 
-            setQueryResult({
+            // Store the query result locally instead of setting state immediately
+            localQueryResult = {
               tableName,
               pages: sortedPages
-            });
+            };
           }
         }
       }
@@ -200,8 +208,8 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
       // Execute the actual query to get the results
       const queryResultSet = sqliteDb.exec(query);
 
-      // If we have a table name and the query uses an index, filter the pages to only include those with matching rows
-      if (queryResult && queryResultSet && queryResultSet.length > 0) {
+      // If we have a local query result and the query uses an index, filter the pages to only include those with matching rows
+      if (localQueryResult && queryResultSet && queryResultSet.length > 0) {
         // Get the rowids of the matching rows
         // First, we need to modify the query to get the rowids
         try {
@@ -211,35 +219,43 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
             const tableName = selectMatch[2];
 
             // Create a query to get the rowids
-            const rowidQuery = `SELECT rowid FROM ${tableName} WHERE ${queryCondition}`;
+            const rowidQuery = `SELECT rowid FROM ${tableName} WHERE ${localQueryCondition}`;
             const rowidResult = sqliteDb.exec(rowidQuery);
 
             if (rowidResult && rowidResult.length > 0 && rowidResult[0].values) {
               // Extract the rowids
               const rowids = rowidResult[0].values.map(row => row[0] as number);
 
-              // Set the matching row count
-              setMatchingRowCount(rowids.length);
+              // Store the matching row count locally
+              const localMatchingRowCount = rowids.length;
 
               // Filter the pages to only include those with matching rowids
-              const filteredPages = queryResult.pages.filter(page => 
+              const filteredPages = localQueryResult.pages.filter(page => 
                 page.cells.some(cell => rowids.includes(cell.rowid))
               );
 
-              // Update the queryResult with the filtered pages and matching rowids
+              // Update the local query result with the filtered pages and matching rowids
               if (filteredPages.length > 0) {
-                setQueryResult({
-                  tableName: queryResult.tableName,
+                localQueryResult = {
+                  tableName: localQueryResult.tableName,
                   pages: filteredPages,
                   matchingRowids: rowids
-                });
+                };
+
+                // Now set all the state variables at once with the final values
+                setMatchingRowCount(localMatchingRowCount);
+                setQueryResult(localQueryResult);
               }
             }
           }
         } catch (err) {
           console.error("Error filtering pages by rowid:", err);
-          // If there's an error, we'll just use all pages as before
+          // If there's an error, we'll just use the unfiltered pages
+          setQueryResult(localQueryResult);
         }
+      } else if (localQueryResult) {
+        // If we have a local query result but no matching rows, still set the query result
+        setQueryResult(localQueryResult);
       }
 
     } catch (err) {
