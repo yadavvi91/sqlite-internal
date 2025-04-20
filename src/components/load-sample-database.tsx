@@ -3,15 +3,21 @@ import { useState } from "react";
 
 interface LoadSampleDatabaseProps {
   onFileLoad: (buffer: ArrayBuffer) => void;
+  text: string;
+  file: string;
 }
 
-const LoadSampleDatabase = ({ onFileLoad }: LoadSampleDatabaseProps) => {
+const LoadSampleDatabase = ({
+  file,
+  text,
+  onFileLoad,
+}: LoadSampleDatabaseProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLoadSample = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/chinook.db");
+      const response = await fetch(file);
       const buffer = await response.arrayBuffer();
       onFileLoad(buffer);
     } catch (error) {
@@ -26,7 +32,7 @@ const LoadSampleDatabase = ({ onFileLoad }: LoadSampleDatabaseProps) => {
     <button
       onClick={handleLoadSample}
       disabled={isLoading}
-      className={`px-5 py-2.5 mt-5 rounded bg-white border border-black max-w-md w-full flex gap-2 ${
+      className={`flex flex-col items-center px-5 py-2.5 mt-5 rounded bg-white border border-black grow w-full flex gap-2 ${
         isLoading ? "cursor-default opacity-70" : "cursor-pointer opacity-100"
       } transition-opacity`}
     >
@@ -34,7 +40,7 @@ const LoadSampleDatabase = ({ onFileLoad }: LoadSampleDatabaseProps) => {
 
       {isLoading ? (
         <span>
-          Loading sample database...
+          {text}...
           <span className="loading-dots ml-1.5">
             <span className="inline-block animate-blink">.</span>
             <span className="inline-block animate-blink animation-delay-200">
@@ -46,7 +52,7 @@ const LoadSampleDatabase = ({ onFileLoad }: LoadSampleDatabaseProps) => {
           </span>
         </span>
       ) : (
-        "Load Sample Database"
+        text
       )}
     </button>
   );
