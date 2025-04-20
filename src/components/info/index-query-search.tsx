@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { InfoContent, InfoHeader } from "../info";
-import { Database, IndexInteriorPage, IndexLeafPage } from "../../type";
+import { Database, IndexInteriorPage, IndexLeafPage, TableLeafPage } from "../../type";
 import { useInfoContext } from "../info-context";
 import ReactCodeMirror from "@uiw/react-codemirror";
 import { sql, SQLite } from "@codemirror/lang-sql";
@@ -25,6 +25,11 @@ interface IndexInfo {
   sql: string;
 }
 
+interface QueryResult {
+  tableName: string;
+  pages: TableLeafPage[];
+}
+
 export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
   const { setInfo } = useInfoContext();
   const [query, setQuery] = useState<string>("");
@@ -37,6 +42,11 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [searchComplete, setSearchComplete] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Navigation state
+  const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
+  const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
+  const [showResultPages, setShowResultPages] = useState<boolean>(false);
 
   // CodeMirror extensions
   const extensions = useMemo(() => {
@@ -96,6 +106,9 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     setSearchPath([]);
     setCurrentStep(0);
     setSearchComplete(false);
+    setQueryResult(null);
+    setCurrentPageIndex(0);
+    setShowResultPages(false);
 
     try {
       // Get the query plan
@@ -136,6 +149,29 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
           if (index) {
             // Start the B-tree search visualization
             startBTreeSearch(index);
+          }
+        }
+
+        // Extract the table name from the query plan
+        const tableMatch = indexUsage.detail.match(/SEARCH TABLE ([^\s]+)/);
+        if (tableMatch && tableMatch[1]) {
+          const tableName = tableMatch[1];
+
+          // Find all pages for this table
+          const tablePages = db.pages.filter(
+            (page): page is TableLeafPage => 
+              page.type === "Table Leaf" && 
+              page.description === tableName
+          );
+
+          if (tablePages.length > 0) {
+            // Sort pages by page number
+            const sortedPages = tablePages.sort((a, b) => a.number - b.number);
+
+            setQueryResult({
+              tableName,
+              pages: sortedPages
+            });
           }
         }
       }
@@ -232,6 +268,47 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     }
   };
 
+  // Navigate to the next page in the query results
+  const handleNextPage = () => {
+    if (!queryResult) return;
+
+    if (currentPageIndex < queryResult.pages.length - 1) {
+      const nextIndex = currentPageIndex + 1;
+      setCurrentPageIndex(nextIndex);
+
+      const nextPage = queryResult.pages[nextIndex];
+
+      // Update the URL hash to navigate to the next page
+      window.location.hash = `page=${nextPage.number}`;
+    }
+  };
+
+  // Navigate to the previous page in the query results
+  const handlePrevPage = () => {
+    if (!queryResult) return;
+
+    if (currentPageIndex > 0) {
+      const prevIndex = currentPageIndex - 1;
+      setCurrentPageIndex(prevIndex);
+
+      const prevPage = queryResult.pages[prevIndex];
+
+      // Update the URL hash to navigate to the previous page
+      window.location.hash = `page=${prevPage.number}`;
+    }
+  };
+
+  // Show the query result pages
+  const showPages = () => {
+    if (!queryResult) return;
+
+    setShowResultPages(true);
+
+    // Navigate to the first page
+    const firstPage = queryResult.pages[0];
+    window.location.hash = `page=${firstPage.number}`;
+  };
+
   return (
     <InfoContent>
       <InfoHeader>Index Query Search</InfoHeader>
@@ -320,9 +397,26 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
 
             <div className="mt-2">
               {usesIndex ? (
-                <p className="text-green-600">
-                  This query uses the index: <strong>{indexName}</strong>
-                </p>
+                <div>
+                  <p className="text-green-600">
+                    This query uses the index: <strong>{indexName}</strong>
+                  </p>
+                  {queryResult && (
+                    <div className="mt-2">
+                      <p className="text-blue-600">
+                        Found {queryResult.pages.length} pages for table: <strong>{queryResult.tableName}</strong>
+                      </p>
+                      {!showResultPages && (
+                        <button
+                          onClick={showPages}
+                          className="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                        >
+                          View Result Pages
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <p className="text-yellow-600">
                   This query does not use an index.
@@ -332,7 +426,7 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
           </div>
         )}
 
-        {usesIndex && searchPath.length > 0 && (
+        {usesIndex && searchPath.length > 0 && !showResultPages && (
           <div className="mb-4">
             <p className="font-medium mb-2">B-tree Search Visualization</p>
             <div className="border border-gray-300 rounded p-2 bg-white">
@@ -403,6 +497,66 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
                 <p className="text-xs text-right mt-1">
                   {currentStep + 1} / {searchPath.length} pages in search path
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full table scan style navigation for query results */}
+        {queryResult && showResultPages && (
+          <div className="mb-4">
+            <p className="font-medium mb-2">Query Result Pages</p>
+            <div className="border border-gray-300 rounded p-2 bg-white">
+              <div className="bg-gray-100 p-3 rounded-md mb-4">
+                <div className="text-center mb-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    Use the buttons below to navigate between pages of the {queryResult.tableName} table
+                  </p>
+                </div>
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => setShowResultPages(false)}
+                    className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+                  >
+                    Back to Query
+                  </button>
+
+                  <div className="text-center">
+                    <h3 className="font-medium">{queryResult.tableName}</h3>
+                    <p className="text-sm text-gray-600">
+                      Page {currentPageIndex + 1} of {queryResult.pages.length}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handlePrevPage}
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
+                      disabled={currentPageIndex === 0}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Previous Page
+                    </button>
+                    <button
+                      onClick={handleNextPage}
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center"
+                      disabled={currentPageIndex === queryResult.pages.length - 1}
+                    >
+                      Next Page
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-2">
+                <p className="font-medium">Current Page: {queryResult.pages[currentPageIndex]?.number}</p>
+                <p className="text-sm text-gray-600">Table: {queryResult.tableName}</p>
+                <p className="text-sm text-gray-600">Total Cells: {queryResult.pages[currentPageIndex]?.cells.length || 0}</p>
               </div>
             </div>
           </div>
