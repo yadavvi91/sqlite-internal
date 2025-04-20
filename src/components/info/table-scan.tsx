@@ -15,6 +15,8 @@ interface TableScanInfoProps {
   onPrevPage?: () => void;
   onNextPage?: () => void;
   onBackToTables?: () => void;
+  // For index query search
+  matchingRowids?: number[];
 }
 
 export function TableScanInfo({ 
@@ -26,7 +28,8 @@ export function TableScanInfo({
   totalPages,
   onPrevPage,
   onNextPage,
-  onBackToTables
+  onBackToTables,
+  matchingRowids
 }: TableScanInfoProps) {
   const { setInfo } = useInfoContext();
   const [currentCellPointerIndex, setCurrentCellPointerIndex] = useState<number>(-1);
@@ -48,9 +51,11 @@ export function TableScanInfo({
       tableName,
       currentPageIndex,
       totalPages,
-      isPartOfFullDatabaseScan: Boolean(tableName && currentPageIndex !== undefined && totalPages !== undefined)
+      isPartOfFullDatabaseScan: Boolean(tableName && currentPageIndex !== undefined && totalPages !== undefined),
+      // For index query search
+      matchingRowids
     });
-  }, [currentCellPointerIndex, currentCellIndex, page, db, setInfo, tableName, currentPageIndex, totalPages]);
+  }, [currentCellPointerIndex, currentCellIndex, page, db, setInfo, tableName, currentPageIndex, totalPages, matchingRowids]);
 
   // Find the cell index that corresponds to a cell pointer
   const findCellIndexFromPointer = (pointerIndex: number): number => {
@@ -246,6 +251,24 @@ export function TableScanInfo({
           <p className="font-medium">Page: {page.number}</p>
           <p className="text-sm text-gray-600">Table: {page.description || "Unknown"}</p>
           <p className="text-sm text-gray-600">Total Cell Pointers: {page.cellPointerArray.length}</p>
+
+          {/* Show information about matching rows if we have matchingRowids */}
+          {matchingRowids && matchingRowids.length > 0 && (
+            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+              <p className="text-sm font-medium text-green-800">
+                This page contains rows matching your query
+              </p>
+              <p className="text-xs text-green-700">
+                {page.cells.filter(cell => matchingRowids.includes(cell.rowid)).length} of {page.cells.length} rows on this page match your query
+              </p>
+              <p className="text-xs text-green-700 mt-1">
+                Matching rowids: {page.cells
+                  .filter(cell => matchingRowids.includes(cell.rowid))
+                  .map(cell => cell.rowid)
+                  .join(', ')}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2 mb-4">

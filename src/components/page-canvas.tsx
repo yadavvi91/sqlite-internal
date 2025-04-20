@@ -98,6 +98,16 @@ export function PageCanvasSegment({
         return cellIndex === currentInfo.currentCellIndex;
       }
 
+      // If this is a cell and it matches one of the rowids from the query
+      if (
+        info.type === "table-leaf-cell" &&
+        currentInfo.matchingRowids &&
+        currentInfo.matchingRowids.length > 0 &&
+        info.page.number === currentInfo.page.number
+      ) {
+        return currentInfo.matchingRowids.includes(info.cell.rowid);
+      }
+
       return false;
     }
 

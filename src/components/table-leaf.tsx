@@ -59,6 +59,9 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
   const currentScanCellIndex = isTableScan ? info.currentCellIndex : -1;
   const currentScanCellPointerIndex = isTableScan ? info.currentCellPointerIndex : -1;
 
+  // Get the matching rowids from the info context if we're in a table scan
+  const matchingRowids = isTableScan && info.matchingRowids ? info.matchingRowids : [];
+
   return (
     <>
       <PageHeader page={page}>
@@ -169,8 +172,20 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
                                      page.type === "Table Leaf" && 
                                      index === currentScanCellIndex;
 
-            // Determine the color class based on whether this is the current scan cell
-            const colorClass = isCurrentScanCell ? "bg-green-500" : "bg-red-300";
+            // Check if this cell matches one of the rowids from the query
+            const isMatchingRow = isTableScan && 
+                                 page.type === "Table Leaf" && 
+                                 info?.type === "table-leaf-cell" &&
+                                 matchingRowids.length > 0 &&
+                                 matchingRowids.includes(info.cell.rowid);
+
+            // Determine the color class based on whether this is the current scan cell or a matching row
+            let colorClass = "bg-red-300"; // Default color
+            if (isCurrentScanCell) {
+              colorClass = "bg-green-500"; // Current scan cell
+            } else if (isMatchingRow) {
+              colorClass = "bg-purple-400"; // Matching row from query
+            }
 
             return (
               <PageCanvasSegment

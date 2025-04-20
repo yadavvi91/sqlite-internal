@@ -48,6 +48,7 @@ export function InfoSidebar() {
       tableName={info.tableName}
       currentPageIndex={info.currentPageIndex}
       totalPages={info.totalPages}
+      matchingRowids={info.matchingRowids}
       onPrevPage={info.isPartOfFullDatabaseScan ? () => {
         // Handle navigation through hash change
         const pagesForTable = info.tableName ? 
@@ -65,7 +66,8 @@ export function InfoSidebar() {
               tableName: info.tableName,
               currentPageIndex: prevIndex,
               totalPages: info.totalPages,
-              isPartOfFullDatabaseScan: true
+              isPartOfFullDatabaseScan: true,
+              matchingRowids: info.matchingRowids
             });
             // Update the URL hash to navigate to the previous page
             window.location.hash = `page=${prevPage.number}`;
@@ -90,7 +92,8 @@ export function InfoSidebar() {
               tableName: info.tableName,
               currentPageIndex: nextIndex,
               totalPages: info.totalPages,
-              isPartOfFullDatabaseScan: true
+              isPartOfFullDatabaseScan: true,
+              matchingRowids: info.matchingRowids
             });
             // Update the URL hash to navigate to the next page
             window.location.hash = `page=${nextPage.number}`;
@@ -125,7 +128,8 @@ export function InfoSidebar() {
               tableName: info.tableName,
               currentPageIndex: nextIndex,
               totalPages: info.totalPages,
-              isPartOfFullDatabaseScan: true
+              isPartOfFullDatabaseScan: true,
+              matchingRowids: info.matchingRowids
             });
             // Update the URL hash to navigate to the next page
             window.location.hash = `page=${nextPage.number}`;

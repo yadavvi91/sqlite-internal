@@ -28,6 +28,7 @@ interface IndexInfo {
 interface QueryResult {
   tableName: string;
   pages: TableLeafPage[];
+  matchingRowids?: number[];
 }
 
 export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
@@ -47,6 +48,7 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
   const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
   const [showResultPages, setShowResultPages] = useState<boolean>(false);
+  const [matchingRowCount, setMatchingRowCount] = useState<number>(0);
 
   // CodeMirror extensions
   const extensions = useMemo(() => {
@@ -112,6 +114,7 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     setQueryResult(null);
     setCurrentPageIndex(0);
     setShowResultPages(false);
+    setMatchingRowCount(0);
 
     // Try to extract the WHERE clause for display purposes
     try {
@@ -193,8 +196,49 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
       }
 
       // Execute the actual query to get the results
-      const queryResult = sqliteDb.exec(query);
-      // We could display the results here if needed
+      const queryResultSet = sqliteDb.exec(query);
+
+      // If we have a table name and the query uses an index, filter the pages to only include those with matching rows
+      if (queryResult && queryResultSet && queryResultSet.length > 0) {
+        // Get the rowids of the matching rows
+        // First, we need to modify the query to get the rowids
+        try {
+          // Extract the SELECT and FROM parts of the query
+          const selectMatch = query.match(/SELECT\s+(.+?)\s+FROM\s+([^\s;]+)/i);
+          if (selectMatch) {
+            const tableName = selectMatch[2];
+
+            // Create a query to get the rowids
+            const rowidQuery = `SELECT rowid FROM ${tableName} WHERE ${queryCondition}`;
+            const rowidResult = sqliteDb.exec(rowidQuery);
+
+            if (rowidResult && rowidResult.length > 0 && rowidResult[0].values) {
+              // Extract the rowids
+              const rowids = rowidResult[0].values.map(row => row[0] as number);
+
+              // Set the matching row count
+              setMatchingRowCount(rowids.length);
+
+              // Filter the pages to only include those with matching rowids
+              const filteredPages = queryResult.pages.filter(page => 
+                page.cells.some(cell => rowids.includes(cell.rowid))
+              );
+
+              // Update the queryResult with the filtered pages and matching rowids
+              if (filteredPages.length > 0) {
+                setQueryResult({
+                  tableName: queryResult.tableName,
+                  pages: filteredPages,
+                  matchingRowids: rowids
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error filtering pages by rowid:", err);
+          // If there's an error, we'll just use all pages as before
+        }
+      }
 
     } catch (err) {
       console.error("Error executing query:", err);
@@ -301,6 +345,17 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
 
       const nextPage = queryResult.pages[nextIndex];
 
+      // Update the info context with the matching rowids
+      setInfo({
+        type: "table-scan",
+        page: nextPage,
+        db: db,
+        tableName: queryResult.tableName,
+        currentPageIndex: nextIndex,
+        totalPages: queryResult.pages.length,
+        matchingRowids: queryResult.matchingRowids
+      });
+
       // Update the URL hash to navigate to the next page
       window.location.hash = `page=${nextPage.number}`;
     }
@@ -316,6 +371,17 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
 
       const prevPage = queryResult.pages[prevIndex];
 
+      // Update the info context with the matching rowids
+      setInfo({
+        type: "table-scan",
+        page: prevPage,
+        db: db,
+        tableName: queryResult.tableName,
+        currentPageIndex: prevIndex,
+        totalPages: queryResult.pages.length,
+        matchingRowids: queryResult.matchingRowids
+      });
+
       // Update the URL hash to navigate to the previous page
       window.location.hash = `page=${prevPage.number}`;
     }
@@ -329,6 +395,19 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
 
     // Navigate to the first page
     const firstPage = queryResult.pages[0];
+
+    // Update the info context with the matching rowids
+    setInfo({
+      type: "table-scan",
+      page: firstPage,
+      db: db,
+      tableName: queryResult.tableName,
+      currentPageIndex: 0,
+      totalPages: queryResult.pages.length,
+      matchingRowids: queryResult.matchingRowids
+    });
+
+    // Update the URL hash to navigate to the page
     window.location.hash = `page=${firstPage.number}`;
   };
 
@@ -427,7 +506,7 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
                   {queryResult && (
                     <div className="mt-2">
                       <p className="text-blue-600">
-                        Found {queryResult.pages.length} pages for table: <strong>{queryResult.tableName}</strong>
+                        Found <strong>{matchingRowCount}</strong> matching rows in {queryResult.pages.length} pages for table: <strong>{queryResult.tableName}</strong>
                       </p>
                       {!showResultPages && (
                         <button
@@ -611,7 +690,7 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
                 <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
                   <p className="text-sm font-medium text-blue-800">How the Index Was Used:</p>
                   <p className="text-xs text-blue-700 mt-1">
-                    The query used the <strong>{indexName}</strong> index to quickly locate the matching rows in the <strong>{queryResult.tableName}</strong> table.
+                    The query used the <strong>{indexName}</strong> index to quickly locate <strong>{matchingRowCount}</strong> matching rows in the <strong>{queryResult.tableName}</strong> table.
                   </p>
                   {queryCondition && (
                     <p className="text-xs text-blue-700 mt-1">
@@ -619,10 +698,10 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
                     </p>
                   )}
                   <p className="text-xs text-blue-700 mt-1">
-                    Instead of scanning all pages of the table, SQLite used the B-tree index structure to find only the relevant pages containing the data that matches your query.
+                    Instead of scanning all {queryResult.tableName} table pages, SQLite used the B-tree index structure to find only the {queryResult.pages.length} relevant pages containing the {matchingRowCount} rows that match your query.
                   </p>
                   <p className="text-xs text-blue-700 mt-1">
-                    You are now viewing the actual data pages that contain the rows matching your query criteria.
+                    You are now viewing only the data pages that contain rows matching your query criteria, not the entire table.
                   </p>
                   <div className="mt-2 p-1 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-xs text-yellow-800">

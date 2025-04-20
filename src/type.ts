@@ -249,6 +249,8 @@ export type InfoType =
     currentPageIndex?: number;
     totalPages?: number;
     isPartOfFullDatabaseScan?: boolean;
+    // For index query search
+    matchingRowids?: number[];
   }
   | {
     type: "index-scan";
