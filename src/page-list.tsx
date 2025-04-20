@@ -4,9 +4,7 @@ import { Database, DatabaseParsedPage } from "./type";
 import { OverflowCanvas } from "./components/overflow-canvas";
 
 export function PageList({ db }: { db: Database }) {
-  const [selectedPage, setSelectedPage] = useState<DatabaseParsedPage | null>(
-    null
-  );
+  const [selectedPageNumber, setSelectedPageNumber] = useState<number>(0);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -17,7 +15,7 @@ export function PageList({ db }: { db: Database }) {
       const parsedHash = new URLSearchParams(hash);
 
       const pageNumber = parsedHash.get("page");
-      setSelectedPage(db.pages[Number(pageNumber) - 1]);
+      setSelectedPageNumber(Number(pageNumber));
     };
 
     window.addEventListener("hashchange", handleHashChange);
@@ -26,7 +24,9 @@ export function PageList({ db }: { db: Database }) {
     };
   }, [db]);
 
-  if (selectedPage) {
+  if (selectedPageNumber && db.pages[selectedPageNumber - 1]) {
+    const selectedPage = db.pages[selectedPageNumber - 1] as DatabaseParsedPage;
+
     if (
       selectedPage.type === "Table Leaf" ||
       selectedPage.type === "Table Interior" ||
