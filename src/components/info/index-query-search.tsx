@@ -1,0 +1,413 @@
+import { useEffect, useState, useMemo } from "react";
+import { InfoContent, InfoHeader } from "../info";
+import { Database, IndexInteriorPage, IndexLeafPage } from "../../type";
+import { useInfoContext } from "../info-context";
+import ReactCodeMirror from "@uiw/react-codemirror";
+import { sql, SQLite } from "@codemirror/lang-sql";
+import { Database as SQLiteDatabase } from "sql.js";
+
+interface IndexQuerySearchProps {
+  db: Database;
+  sqliteDb: SQLiteDatabase;
+}
+
+interface QueryPlan {
+  id: number;
+  parent: number;
+  notUsed: string;
+  detail: string;
+}
+
+interface IndexInfo {
+  name: string;
+  tableName: string;
+  rootPage: number;
+  sql: string;
+}
+
+export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
+  const { setInfo } = useInfoContext();
+  const [query, setQuery] = useState<string>("");
+  const [queryPlan, setQueryPlan] = useState<QueryPlan[]>([]);
+  const [usesIndex, setUsesIndex] = useState<boolean>(false);
+  const [indexName, setIndexName] = useState<string | null>(null);
+  const [indexes, setIndexes] = useState<IndexInfo[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchPath, setSearchPath] = useState<number[]>([]);
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [searchComplete, setSearchComplete] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // CodeMirror extensions
+  const extensions = useMemo(() => {
+    return [
+      sql({
+        dialect: SQLite,
+      }),
+    ];
+  }, []);
+
+  // Load available indexes from the database
+  useEffect(() => {
+    try {
+      // Find all index pages in the database
+      const indexPages = db.pages.filter(
+        page => page.type === "Index Interior" || page.type === "Index Leaf"
+      );
+
+      // Get index information from sqlite_master
+      const indexInfoMap = new Map<string, IndexInfo>();
+
+      // Group index pages by index name
+      const indexPagesMap = new Map<string, (IndexInteriorPage | IndexLeafPage)[]>();
+
+      indexPages.forEach(page => {
+        const indexName = page.description || `Unknown Index (Page ${page.number})`;
+        if (!indexPagesMap.has(indexName)) {
+          indexPagesMap.set(indexName, []);
+        }
+        indexPagesMap.get(indexName)?.push(page as (IndexInteriorPage | IndexLeafPage));
+      });
+
+      // Update the state with the index information
+      setIndexes(Array.from(indexPagesMap.keys()).map(name => ({
+        name,
+        tableName: name.split(' ')[0] || '',
+        rootPage: indexPagesMap.get(name)?.[0]?.number || 0,
+        sql: ''
+      })));
+    } catch (err) {
+      console.error("Error loading indexes:", err);
+      setError("Failed to load indexes from the database.");
+    }
+  }, [db]);
+
+  // Execute the query and get the query plan
+  const executeQuery = () => {
+    if (!query.trim()) {
+      setError("Please enter a SQL query.");
+      return;
+    }
+
+    setError(null);
+    setQueryPlan([]);
+    setUsesIndex(false);
+    setIndexName(null);
+    setSearchPath([]);
+    setCurrentStep(0);
+    setSearchComplete(false);
+
+    try {
+      // Get the query plan
+      const explainQuery = `EXPLAIN QUERY PLAN ${query}`;
+      const result = sqliteDb.exec(explainQuery);
+
+      if (!result || result.length === 0 || !result[0].values || result[0].values.length === 0) {
+        setError("Failed to get query plan.");
+        return;
+      }
+
+      // Parse the query plan
+      const plan: QueryPlan[] = result[0].values.map((row: any[]) => ({
+        id: row[0] as number,
+        parent: row[1] as number,
+        notUsed: row[2] as string,
+        detail: row[3] as string
+      }));
+
+      setQueryPlan(plan);
+
+      // Check if the query uses an index
+      const indexUsage = plan.find(step => 
+        step.detail.includes("USING INDEX") || 
+        step.detail.includes("SEARCH") && step.detail.includes("USING")
+      );
+
+      if (indexUsage) {
+        setUsesIndex(true);
+
+        // Extract the index name from the query plan
+        const match = indexUsage.detail.match(/USING (?:INDEX|COVERING INDEX) ([^\s]+)/);
+        if (match && match[1]) {
+          setIndexName(match[1]);
+
+          // Find the index in our list
+          const index = indexes.find(idx => idx.name === match[1]);
+          if (index) {
+            // Start the B-tree search visualization
+            startBTreeSearch(index);
+          }
+        }
+      }
+
+      // Execute the actual query to get the results
+      const queryResult = sqliteDb.exec(query);
+      // We could display the results here if needed
+
+    } catch (err) {
+      console.error("Error executing query:", err);
+      setError(`Error executing query: ${err}`);
+    }
+  };
+
+  // Start the B-tree search visualization
+  const startBTreeSearch = (index: IndexInfo) => {
+    // Find the root page of the index
+    const rootPage = db.pages.find(page => page.number === index.rootPage);
+    if (!rootPage) {
+      setError(`Could not find root page for index ${index.name}`);
+      return;
+    }
+
+    // Create a search path through the B-tree
+    // In a real implementation, this would trace the actual search path based on the query
+    // For now, we'll simulate a path from the root to a leaf
+    const path: number[] = [rootPage.number];
+
+    // If the root is an interior page, add a path to a leaf
+    if (rootPage.type === "Index Interior") {
+      // Find a child page
+      const interiorPage = rootPage as IndexInteriorPage;
+      if (interiorPage.cells.length > 0) {
+        const childPageNumber = interiorPage.cells[0].leftChildPagePointer;
+        const childPage = db.pages.find(page => page.number === childPageNumber);
+        if (childPage) {
+          path.push(childPage.number);
+
+          // If the child is also an interior page, continue the path
+          if (childPage.type === "Index Interior") {
+            const childInteriorPage = childPage as IndexInteriorPage;
+            if (childInteriorPage.cells.length > 0) {
+              const leafPageNumber = childInteriorPage.cells[0].leftChildPagePointer;
+              const leafPage = db.pages.find(page => page.number === leafPageNumber);
+              if (leafPage) {
+                path.push(leafPage.number);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    setSearchPath(path);
+    setIsSearching(true);
+  };
+
+  // Handle the next step in the B-tree search
+  const handleNextStep = () => {
+    if (currentStep < searchPath.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      setSearchComplete(true);
+      setIsSearching(false);
+    }
+  };
+
+  // Reset the search
+  const resetSearch = () => {
+    setCurrentStep(0);
+    setSearchComplete(false);
+    setIsSearching(true);
+  };
+
+  // Navigate to a specific page in the search path
+  const navigateToPage = (pageNumber: number) => {
+    // Update the URL hash to navigate to the page
+    window.location.hash = `page=${pageNumber}`;
+
+    // Update the InfoContext to highlight the page
+    const page = db.pages.find(p => p.number === pageNumber);
+    if (page) {
+      if (page.type === "Index Interior") {
+        setInfo({
+          type: "btree-page-header",
+          page: page
+        });
+      } else if (page.type === "Index Leaf") {
+        setInfo({
+          type: "btree-page-header",
+          page: page
+        });
+      }
+    }
+  };
+
+  return (
+    <InfoContent>
+      <InfoHeader>Index Query Search</InfoHeader>
+
+      <div className="bg-gray-100 p-3 rounded-md mb-4">
+        <div className="mb-3">
+          <p className="font-medium">Database Information</p>
+          <p className="text-sm text-gray-600">Page Size: {db.header.pageSize} bytes</p>
+          <p className="text-sm text-gray-600">Total Pages: {db.header.pageCount}</p>
+        </div>
+
+        <div className="mb-4">
+          <p className="font-medium mb-2">Available Indexes</p>
+          {indexes.length === 0 ? (
+            <p className="text-sm text-gray-600">No indexes found in the database.</p>
+          ) : (
+            <div className="border border-gray-300 rounded p-2 bg-white max-h-40 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-1">Index Name</th>
+                    <th className="text-left p-1">Table</th>
+                    <th className="text-left p-1">Root Page</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {indexes.map((index, i) => (
+                    <tr key={i} className="border-b border-gray-100">
+                      <td className="p-1">{index.name}</td>
+                      <td className="p-1">{index.tableName}</td>
+                      <td className="p-1">{index.rootPage}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <p className="font-medium mb-2">Enter SQL Query</p>
+          <div className="border border-gray-300 rounded bg-white">
+            <ReactCodeMirror
+              value={query}
+              onChange={setQuery}
+              className="h-32"
+              extensions={extensions}
+            />
+          </div>
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={executeQuery}
+              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+            >
+              Execute Query
+            </button>
+          </div>
+          {error && (
+            <div className="mt-2 text-red-500 text-sm">{error}</div>
+          )}
+        </div>
+
+        {queryPlan.length > 0 && (
+          <div className="mb-4">
+            <p className="font-medium mb-2">Query Plan</p>
+            <div className="border border-gray-300 rounded p-2 bg-white">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-1">ID</th>
+                    <th className="text-left p-1">Parent</th>
+                    <th className="text-left p-1">Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {queryPlan.map((step, i) => (
+                    <tr key={i} className={`border-b border-gray-100 ${step.detail.includes("USING INDEX") ? "bg-green-100" : ""}`}>
+                      <td className="p-1">{step.id}</td>
+                      <td className="p-1">{step.parent}</td>
+                      <td className="p-1">{step.detail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-2">
+              {usesIndex ? (
+                <p className="text-green-600">
+                  This query uses the index: <strong>{indexName}</strong>
+                </p>
+              ) : (
+                <p className="text-yellow-600">
+                  This query does not use an index.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {usesIndex && searchPath.length > 0 && (
+          <div className="mb-4">
+            <p className="font-medium mb-2">B-tree Search Visualization</p>
+            <div className="border border-gray-300 rounded p-2 bg-white">
+              <div className="mb-2">
+                <p className="text-sm">
+                  {searchComplete
+                    ? "Search complete! The query has traversed the B-tree index."
+                    : `Step ${currentStep + 1} of ${searchPath.length}: Visiting page ${searchPath[currentStep]}`}
+                </p>
+
+                <div className="mt-2 flex gap-2">
+                  {isSearching && !searchComplete && (
+                    <button
+                      onClick={handleNextStep}
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    >
+                      Next Step
+                    </button>
+                  )}
+
+                  {(searchComplete || !isSearching) && (
+                    <button
+                      onClick={resetSearch}
+                      className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
+                    >
+                      Restart Search
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-sm font-medium mb-1">Search Path:</p>
+                <div className="flex flex-wrap gap-2">
+                  {searchPath.map((pageNumber, index) => {
+                    const page = db.pages.find(p => p.number === pageNumber);
+                    const isCurrentStep = index === currentStep;
+                    const isVisited = index <= currentStep;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`
+                          p-2 border rounded cursor-pointer
+                          ${isCurrentStep ? "border-blue-500 bg-blue-100" : "border-gray-300"}
+                          ${isVisited ? "bg-gray-100" : ""}
+                        `}
+                        onClick={() => navigateToPage(pageNumber)}
+                      >
+                        <p className="font-medium">Page {pageNumber}</p>
+                        <p className="text-xs text-gray-600">{page?.type || "Unknown"}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full" 
+                    style={{ 
+                      width: `${searchComplete ? 100 : (currentStep + 1) / searchPath.length * 100}%`,
+                      transition: "width 0.5s ease-in-out"
+                    }}
+                  ></div>
+                </div>
+                <p className="text-xs text-right mt-1">
+                  {currentStep + 1} / {searchPath.length} pages in search path
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </InfoContent>
+  );
+}

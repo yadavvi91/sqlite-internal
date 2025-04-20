@@ -22,18 +22,34 @@ export function DatabaseHeaderInfo({
     }
   };
 
+  const startIndexQuerySearch = () => {
+    // Use the database object that's already in the info context
+    if (info.type === "database-header") {
+      setInfo({
+        type: "index-query-search",
+        db: info.database,
+      });
+    }
+  };
+
   return (
     <InfoContent>
       <InfoHeader fileOffset={0} length={100} pageOffset={0}>
         Database Header
       </InfoHeader>
 
-      <div className="flex items-center mb-4">
+      <div className="flex items-center gap-2 mb-4">
         <button
           onClick={startFullDatabaseTableScan}
           className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
         >
           Full Database Table Scan
+        </button>
+        <button
+          onClick={startIndexQuerySearch}
+          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+        >
+          Index Query Search
         </button>
       </div>
 

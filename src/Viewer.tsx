@@ -13,6 +13,17 @@ interface ViewerProps {
 export default function Viewer({ database }: ViewerProps) {
   const [db, setDatabase] = useState<Database | null>(null);
 
+  // Make the SQLiteDatabase instance available on the window object
+  // This is a workaround to allow the IndexQuerySearch component to access it
+  useEffect(() => {
+    (window as any).sqliteDatabase = database;
+
+    // Clean up when the component unmounts
+    return () => {
+      delete (window as any).sqliteDatabase;
+    };
+  }, [database]);
+
   const parseDatabaseFromDatabase = useCallback(() => {
     const parsedDatabase = parseDatabase(database.export().buffer);
 

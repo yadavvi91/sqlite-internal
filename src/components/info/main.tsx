@@ -6,6 +6,7 @@ import { DatabaseHeaderInfo } from "./database-header";
 import { FullDatabaseTableScan } from "./full-database-table-scan";
 import { IndexInteriorCellInfo } from "./index-interior-cell";
 import { IndexLeafCellInfo } from "./index-leaf-cell";
+import { IndexQuerySearch } from "./index-query-search";
 import { OverflowNextPageInfo } from "./overflow-next-page";
 import { OverflowPayloadInfo } from "./overflow-payload";
 import { StartedInfo } from "./starter";
@@ -133,6 +134,12 @@ export function InfoSidebar() {
     />;
   } else if (info.type === "full-database-table-scan") {
     return <FullDatabaseTableScan db={info.db} />;
+  } else if (info.type === "index-query-search") {
+    // Get the SQLiteDatabase instance from the window object
+    // This is a workaround since we don't have direct access to the SQLiteDatabase instance
+    // In a real application, we would pass this through props
+    const sqliteDb = (window as any).sqliteDatabase;
+    return <IndexQuerySearch db={info.db} sqliteDb={sqliteDb} />;
   }
 
   return <StartedInfo />;

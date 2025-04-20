@@ -254,4 +254,8 @@ export type InfoType =
     type: "full-database-table-scan";
     db: Database;
     selectedTablePage?: TableLeafPage;
+  }
+  | {
+    type: "index-query-search";
+    db: Database;
   };
