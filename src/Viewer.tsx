@@ -1,14 +1,19 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PageList } from "./page-list";
 import { parseDatabase } from "./parser/main";
-import { Database } from "sql.js";
+import { Database as SQLiteDatabase } from "sql.js";
+import {} from "sql.js";
+import { SQLEditor } from "./components/editor";
+import { Database } from "./type";
 
 interface ViewerProps {
-  database: Database;
+  database: SQLiteDatabase;
 }
 
 export default function Viewer({ database }: ViewerProps) {
-  const db = useMemo(() => {
+  const [db, setDatabase] = useState<Database | null>(null);
+
+  const parseDatabaseFromDatabase = useCallback(() => {
     const parsedDatabase = parseDatabase(database.export().buffer);
 
     // Attaching the table name to each pages
@@ -30,5 +35,26 @@ export default function Viewer({ database }: ViewerProps) {
     return parsedDatabase;
   }, [database]);
 
-  return <PageList db={db} />;
+  useEffect(() => {
+    setDatabase(parseDatabaseFromDatabase());
+  }, [parseDatabaseFromDatabase]);
+
+  const onExecute = useCallback(
+    (sql: string) => {
+      database.exec(sql);
+      setDatabase(parseDatabaseFromDatabase());
+    },
+    [database, parseDatabaseFromDatabase]
+  );
+
+  if (!db) {
+    return null;
+  }
+
+  return (
+    <>
+      <PageList db={db} />
+      <SQLEditor onExecute={onExecute} />
+    </>
+  );
 }

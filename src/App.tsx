@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Viewer from "./Viewer";
 import FileDropZone from "./components/file-drop-zone";
 import { InfoProvider } from "./components/info";
@@ -24,9 +24,19 @@ function App() {
         <Viewer database={database} />
       ) : (
         <div className="flex flex-col items-center justify-center min-h-screen p-5 gap-4">
-          <div>
-            <LoadSampleDatabase onFileLoad={onDatabaseLoadFromBuffer} />
+          <div className="flex gap-2 w-full max-w-md">
+            <LoadSampleDatabase
+              text="Sample Database"
+              file={"/chinook.db"}
+              onFileLoad={onDatabaseLoadFromBuffer}
+            />
+            <LoadSampleDatabase
+              text="Blank Database"
+              file={"/empty.db"}
+              onFileLoad={onDatabaseLoadFromBuffer}
+            />
           </div>
+
           <FileDropZone onFileLoad={onDatabaseLoadFromBuffer}>
             <h2 className="mt-0 text-blue-600">SQLite Database Viewer</h2>
           </FileDropZone>
