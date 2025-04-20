@@ -7,6 +7,7 @@ import { FullDatabaseTableScan } from "./full-database-table-scan";
 import { IndexInteriorCellInfo } from "./index-interior-cell";
 import { IndexLeafCellInfo } from "./index-leaf-cell";
 import { IndexQuerySearch } from "./index-query-search";
+import { IndexScanInfo } from "./index-scan";
 import { OverflowNextPageInfo } from "./overflow-next-page";
 import { OverflowPayloadInfo } from "./overflow-payload";
 import { StartedInfo } from "./starter";
@@ -134,6 +135,77 @@ export function InfoSidebar() {
     />;
   } else if (info.type === "full-database-table-scan") {
     return <FullDatabaseTableScan db={info.db} />;
+  } else if (info.type === "index-scan") {
+    return <IndexScanInfo 
+      page={info.page} 
+      db={info.db} 
+      indexName={info.indexName}
+      currentPageIndex={info.currentPageIndex}
+      totalPages={info.totalPages}
+      searchPath={info.searchPath}
+      currentPathStep={info.currentPathStep}
+      onPrevPage={() => {
+        // Handle navigation to previous page in search path
+        if (info.searchPath && info.currentPathStep !== undefined && info.currentPathStep > 0) {
+          const prevStep = info.currentPathStep - 1;
+          const prevPageNumber = info.searchPath[prevStep];
+          const prevPage = info.db.pages.find(p => p.number === prevPageNumber);
+
+          if (prevPage && (prevPage.type === "Index Interior" || prevPage.type === "Index Leaf")) {
+            // Update the info context with the previous page
+            setInfo({
+              type: "index-scan",
+              page: prevPage as any,
+              db: info.db,
+              indexName: info.indexName,
+              currentPageIndex: prevStep,
+              totalPages: info.searchPath.length,
+              searchPath: info.searchPath,
+              currentPathStep: prevStep
+            });
+
+            // Update the URL hash to navigate to the previous page
+            window.location.hash = `page=${prevPageNumber}`;
+          }
+        }
+      }}
+      onNextPage={() => {
+        // Handle navigation to next page in search path
+        if (info.searchPath && info.currentPathStep !== undefined && 
+            info.currentPathStep < info.searchPath.length - 1) {
+          const nextStep = info.currentPathStep + 1;
+          const nextPageNumber = info.searchPath[nextStep];
+          const nextPage = info.db.pages.find(p => p.number === nextPageNumber);
+
+          if (nextPage && (nextPage.type === "Index Interior" || nextPage.type === "Index Leaf")) {
+            // Update the info context with the next page
+            setInfo({
+              type: "index-scan",
+              page: nextPage as any,
+              db: info.db,
+              indexName: info.indexName,
+              currentPageIndex: nextStep,
+              totalPages: info.searchPath.length,
+              searchPath: info.searchPath,
+              currentPathStep: nextStep
+            });
+
+            // Update the URL hash to navigate to the next page
+            window.location.hash = `page=${nextPageNumber}`;
+          }
+        }
+      }}
+      onBackToSearch={() => {
+        // Go back to index query search view
+        setInfo({
+          type: "index-query-search",
+          db: info.db
+        });
+
+        // Update the URL hash to point to the first page (DB Header page)
+        window.location.hash = `page=1`;
+      }}
+    />;
   } else if (info.type === "index-query-search") {
     // Get the SQLiteDatabase instance from the window object
     // This is a workaround since we don't have direct access to the SQLiteDatabase instance

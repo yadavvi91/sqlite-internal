@@ -251,6 +251,19 @@ export type InfoType =
     isPartOfFullDatabaseScan?: boolean;
   }
   | {
+    type: "index-scan";
+    page: IndexInteriorPage | IndexLeafPage;
+    db: Database;
+    currentCellIndex?: number;
+    currentCellPointerIndex?: number;
+    // Navigation props for index scan
+    indexName?: string;
+    currentPageIndex?: number;
+    totalPages?: number;
+    searchPath?: number[];
+    currentPathStep?: number;
+  }
+  | {
     type: "full-database-table-scan";
     db: Database;
     selectedTablePage?: TableLeafPage;

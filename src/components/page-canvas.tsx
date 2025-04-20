@@ -101,6 +101,46 @@ export function PageCanvasSegment({
       return false;
     }
 
+    // Special case for index scan - we want to highlight both the cell pointer and the cell
+    if (currentInfo.type === "index-scan") {
+      // If this is a cell pointer and it's the current one being scanned
+      if (
+        info.type === "btree-cell-pointer" &&
+        currentInfo.currentCellPointerIndex !== undefined &&
+        info.page.number === currentInfo.page.number
+      ) {
+        const cellPointerArray = info.page.cellPointerArray;
+        const cellPointerIndex = cellPointerArray.findIndex(
+          (cp) => cp === info.cellPointer
+        );
+        return cellPointerIndex === currentInfo.currentCellPointerIndex;
+      }
+
+      // If this is an index interior cell and it's the current one being scanned
+      if (
+        info.type === "index-interior-cell" &&
+        currentInfo.currentCellIndex !== undefined &&
+        info.page.number === currentInfo.page.number
+      ) {
+        const cells = info.page.cells;
+        const cellIndex = cells.findIndex((c) => c === info.cell);
+        return cellIndex === currentInfo.currentCellIndex;
+      }
+
+      // If this is an index leaf cell and it's the current one being scanned
+      if (
+        info.type === "index-leaf-cell" &&
+        currentInfo.currentCellIndex !== undefined &&
+        info.page.number === currentInfo.page.number
+      ) {
+        const cells = info.page.cells;
+        const cellIndex = cells.findIndex((c) => c === info.cell);
+        return cellIndex === currentInfo.currentCellIndex;
+      }
+
+      return false;
+    }
+
     // Regular case - not a table scan
     if (info.type !== currentInfo.type) return false;
 

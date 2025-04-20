@@ -36,6 +36,21 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
     }
   };
 
+  const startIndexScan = () => {
+    if (page.type === "Index Interior" || page.type === "Index Leaf") {
+      setInfo({
+        type: "index-scan",
+        page: page as (IndexInteriorPage | IndexLeafPage),
+        db,
+        indexName: page.description,
+        currentPageIndex: 0,
+        totalPages: 1,
+        searchPath: [page.number],
+        currentPathStep: 0
+      });
+    }
+  };
+
   // Check if we're currently in a table scan for this page
   const isTableScan = info.type === "table-scan" && 
                      info.page.number === page.number;
@@ -53,6 +68,14 @@ export function TableLeafCanvas({ page, db }: TableLeafCanvasProps) {
             className="ml-4 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
           >
             Full Table Scan
+          </button>
+        )}
+        {(page.type === "Index Interior" || page.type === "Index Leaf") && (
+          <button
+            onClick={startIndexScan}
+            className="ml-4 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+          >
+            Index Scan
           </button>
         )}
       </PageHeader>

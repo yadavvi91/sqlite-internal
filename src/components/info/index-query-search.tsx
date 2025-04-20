@@ -251,20 +251,22 @@ export function IndexQuerySearch({ db, sqliteDb }: IndexQuerySearchProps) {
     // Update the URL hash to navigate to the page
     window.location.hash = `page=${pageNumber}`;
 
-    // Update the InfoContext to highlight the page
+    // Update the InfoContext to start an index scan for this page
     const page = db.pages.find(p => p.number === pageNumber);
-    if (page) {
-      if (page.type === "Index Interior") {
-        setInfo({
-          type: "btree-page-header",
-          page: page
-        });
-      } else if (page.type === "Index Leaf") {
-        setInfo({
-          type: "btree-page-header",
-          page: page
-        });
-      }
+    if (page && (page.type === "Index Interior" || page.type === "Index Leaf")) {
+      // Find the index of this page in the search path
+      const pathIndex = searchPath.findIndex(pNum => pNum === pageNumber);
+
+      setInfo({
+        type: "index-scan",
+        page: page as (IndexInteriorPage | IndexLeafPage),
+        db: db,
+        indexName: indexName || page.description,
+        searchPath: searchPath,
+        currentPathStep: pathIndex >= 0 ? pathIndex : undefined,
+        currentPageIndex: pathIndex,
+        totalPages: searchPath.length
+      });
     }
   };
 
